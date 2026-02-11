@@ -181,18 +181,27 @@
       font-size: 1.25rem;
       flex-shrink: 0;
       border: 2px solid transparent;
+      overflow: hidden;
+      padding: 6px;
+    }
+    
+    .message-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
     }
     
     .message.assistant .message-avatar {
-      background: linear-gradient(135deg, var(--brand-slate), var(--brand-slate-dark));
-      color: white;
-      border-color: var(--brand-slate-light);
+      background: white;
+      border-color: var(--brand-gold);
+      padding: 4px;
     }
     
     .message.user .message-avatar {
       background: linear-gradient(135deg, var(--brand-gold), var(--brand-gold-dark));
       color: white;
       border-color: var(--brand-gold);
+      font-size: 1.5rem;
     }
     
     .message-content {
@@ -391,7 +400,9 @@
       <div class="messages" id="messages"></div>
       
       <div class="typing-indicator" id="typingIndicator">
-        <div class="message-avatar">🌱</div>
+        <div class="message-avatar">
+          <img src="/logo.png" alt="Purpose Piece" />
+        </div>
         <div class="typing-dots">
           <span></span>
           <span></span>
@@ -439,7 +450,15 @@
 
       const avatar = document.createElement("div");
       avatar.className = "message-avatar";
-      avatar.textContent = role === "assistant" ? "🌱" : "👤";
+      
+      if (role === "assistant") {
+        const img = document.createElement("img");
+        img.src = "/logo.png";
+        img.alt = "Purpose Piece";
+        avatar.appendChild(img);
+      } else {
+        avatar.textContent = "👤";
+      }
 
       const contentDiv = document.createElement("div");
       contentDiv.className = "message-content";
