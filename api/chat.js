@@ -35,4 +35,49 @@ THE FOUR SCALES:
 Key principles:
 - This is RECOGNITION work, not evaluation
 - Be conversational, not quiz-like
-- Ask adaptive follow-up questions
+- Ask adaptive follow-up questions based on what emerges
+- Gently redirect aspirational answers to actual patterns
+- Validate before finalizing
+- The conversation should take 10-15 exchanges
+- When you identify their archetype, domain, and scale, state it clearly like: "Your Purpose Piece is: [ARCHETYPE] in [DOMAIN] at [SCALE] scale"
+
+Start with a warm welcome and ask your first question to begin discovering their pattern.`;
+
+module.exports = async (req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  try {
+    const { messages } = req.body;
+
+    if (!Array.isArray(messages)) {
+      return res.status(400).json({ error: "Messages must be an array" });
+    }
+
+    const response = await anthropic.messages.create({
+      model: "claude-3-5-sonnet-latest",
+      max_tokens: 800,
+      system: SYSTEM_PROMPT,
+      messages: messages
+    });
+
+    const text = response.content?.[0]?.text ?? "";
+
+    return res.status(200).json({ response: text });
+  } catch (err) {
+    console.error("Claude API error:", err);
+    return res.status(500).json({ 
+      error: "AI request failed",
+      details: err.message 
+    });
+  }
+};
