@@ -279,7 +279,7 @@
     let conversationHistory = [];
 
     window.onload = function () {
-      callAPI([]); // will seed on backend if empty
+      callAPI([]);
 
       const textarea = document.getElementById("userInput");
       textarea.addEventListener("input", function () {
@@ -352,7 +352,6 @@
         document.getElementById("typingIndicator").classList.remove("active");
 
         if (!response.ok) {
-          // Show the server's detail message if present
           const details = data.details ? ` (${data.details})` : "";
           throw new Error((data.error || `API error: ${response.status}`) + details);
         }
