@@ -63,8 +63,15 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: "Messages must be an array" });
     }
 
+    // If empty messages (initial load), send welcome message directly
+    if (messages.length === 0) {
+      return res.status(200).json({ 
+        response: "Welcome! I'm here to help you discover where you belong in the work of building humanity's future. This is a conversational journey—there are no wrong answers, just honest reflection.\n\nLet's start with something simple: **When you look at the world around you and see something that needs attention, what's your first instinct?**" 
+      });
+    }
+
     const response = await anthropic.messages.create({
-      model: "claude-3-5-sonnet-latest",
+      model: "claude-3-5-sonnet-20241022",
       max_tokens: 800,
       system: SYSTEM_PROMPT,
       messages: messages
