@@ -79,8 +79,8 @@
       background: white;
       border-radius: 16px;
       box-shadow:
-        0 4px 6px rgba(0, 0, 0, 0.02),
-        0 12px 24px rgba(0, 0, 0, 0.04),
+        0 4px 6px rgba(0,0,0,0.02),
+        0 12px 24px rgba(0,0,0,0.04),
         0 0 0 1px rgba(44, 62, 46, 0.06);
       overflow: hidden;
       animation: fadeInUp 0.8s ease-out 0.2s backwards;
@@ -112,12 +112,9 @@
     .message.user { flex-direction: row-reverse; }
 
     .message-avatar {
-      width: 40px;
-      height: 40px;
+      width: 40px; height: 40px;
       border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
       font-size: 1.25rem;
       flex-shrink: 0;
     }
@@ -126,7 +123,6 @@
       background: linear-gradient(135deg, var(--earth-mid), var(--earth-dark));
       color: white;
     }
-
     .message.user .message-avatar {
       background: linear-gradient(135deg, var(--earth-accent), #C89563);
       color: white;
@@ -145,7 +141,6 @@
       color: var(--text-primary);
       border-bottom-left-radius: 4px;
     }
-
     .message.user .message-content {
       background: var(--earth-mid);
       color: white;
@@ -158,7 +153,6 @@
       gap: var(--space-sm);
       padding: var(--space-sm);
     }
-
     .typing-indicator.active { display: flex; }
 
     .typing-dots {
@@ -176,7 +170,6 @@
       background: var(--earth-mid);
       animation: typingDot 1.4s infinite;
     }
-
     .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
     .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
 
@@ -205,7 +198,10 @@
       transition: border-color 0.2s ease;
     }
 
-    textarea:focus { outline: none; border-color: var(--earth-mid); }
+    textarea:focus {
+      outline: none;
+      border-color: var(--earth-mid);
+    }
 
     button {
       padding: var(--space-sm) var(--space-md);
@@ -223,7 +219,6 @@
 
     button:hover { background: var(--earth-dark); transform: translateY(-1px); }
     button:active { transform: translateY(0); }
-
     button:disabled {
       background: var(--earth-light);
       color: var(--text-secondary);
@@ -231,100 +226,18 @@
       transform: none;
     }
 
-    .email-capture {
-      display: none;
-      padding: var(--space-lg);
-      background: var(--earth-light);
-      border-radius: 12px;
-      margin-top: var(--space-md);
-    }
-
-    .email-capture.active {
-      display: block;
-      animation: fadeInUp 0.4s ease-out;
-    }
-
-    .email-capture h3 {
-      font-family: var(--font-display);
-      font-size: 1.5rem;
-      color: var(--earth-dark);
-      margin-bottom: var(--space-sm);
-    }
-
-    .email-capture p { color: var(--text-secondary); margin-bottom: var(--space-md); }
-
-    .email-input {
-      display: flex;
-      gap: var(--space-sm);
-    }
-
-    .email-input input[type="email"] {
-      flex: 1;
-      padding: var(--space-sm) var(--space-md);
-      border: 2px solid white;
-      border-radius: 12px;
-      font-family: var(--font-body);
-      font-size: 1rem;
-    }
-
-    .email-input input[type="email"]:focus { outline: none; border-color: var(--earth-mid); }
-
-    .result-display {
-      display: none;
-      padding: var(--space-xl);
-      background: linear-gradient(135deg, var(--earth-light), white);
-      border-radius: 12px;
-      margin-top: var(--space-lg);
-    }
-
-    .result-display.active {
-      display: block;
-      animation: fadeInUp 0.6s ease-out;
-    }
-
-    .result-display h2 {
-      font-family: var(--font-display);
-      font-size: 2.5rem;
-      color: var(--earth-dark);
-      margin-bottom: var(--space-sm);
-    }
-
-    .result-display .archetype-essence {
-      font-size: 1.25rem;
-      color: var(--earth-mid);
-      font-style: italic;
-      margin-bottom: var(--space-lg);
-    }
-
-    .result-display .next-steps {
-      background: white;
-      padding: var(--space-lg);
-      border-radius: 8px;
-      border-left: 4px solid var(--earth-accent);
-    }
-
-    .result-display ul {
-      margin: var(--space-md) 0;
-      padding-left: var(--space-lg);
-    }
-
-    .result-display li { margin-bottom: var(--space-sm); }
-
     @keyframes fadeInDown {
       from { opacity: 0; transform: translateY(-20px); }
       to { opacity: 1; transform: translateY(0); }
     }
-
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
     }
-
     @keyframes slideIn {
       from { opacity: 0; transform: translateX(-10px); }
       to { opacity: 1; transform: translateX(0); }
     }
-
     @keyframes typingDot {
       0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
       30% { transform: translateY(-8px); opacity: 1; }
@@ -338,7 +251,6 @@
     }
   </style>
 </head>
-
 <body>
   <div class="container">
     <div class="header">
@@ -351,9 +263,7 @@
 
       <div class="typing-indicator" id="typingIndicator">
         <div class="message-avatar">🌱</div>
-        <div class="typing-dots">
-          <span></span><span></span><span></span>
-        </div>
+        <div class="typing-dots"><span></span><span></span><span></span></div>
       </div>
 
       <div class="input-area">
@@ -363,44 +273,22 @@
         </div>
       </div>
     </div>
-
-    <div class="email-capture" id="emailCapture">
-      <h3>Get Your Purpose Piece</h3>
-      <p>Enter your email to receive your archetype profile and next steps.</p>
-      <div class="email-input">
-        <input type="email" id="emailInput" placeholder="your@email.com">
-        <button onclick="submitEmail()">Continue</button>
-      </div>
-    </div>
-
-    <div class="result-display" id="resultDisplay"></div>
   </div>
 
   <script>
-    // Conversation state
     let conversationHistory = [];
-    let userProfile = {
-      responses: [],
-      archetype: null,
-      domain: null,
-      scale: null,
-      email: null
-    };
 
-    window.onload = function() {
-      // Start conversation
-      callAPI([]);
+    window.onload = function () {
+      callAPI([]); // will seed on backend if empty
 
-      // Auto-resize textarea
-      const textarea = document.getElementById('userInput');
-      textarea.addEventListener('input', function() {
-        this.style.height = 'auto';
-        this.style.height = this.scrollHeight + 'px';
+      const textarea = document.getElementById("userInput");
+      textarea.addEventListener("input", function () {
+        this.style.height = "auto";
+        this.style.height = this.scrollHeight + "px";
       });
 
-      // Send on Enter (but Shift+Enter for new line)
-      textarea.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
+      textarea.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" && !e.shiftKey) {
           e.preventDefault();
           sendMessage();
         }
@@ -408,17 +296,17 @@
     };
 
     function addMessage(role, content) {
-      const messagesDiv = document.getElementById('messages');
-      const messageDiv = document.createElement('div');
+      const messagesDiv = document.getElementById("messages");
+      const messageDiv = document.createElement("div");
       messageDiv.className = `message ${role}`;
 
-      const avatar = document.createElement('div');
-      avatar.className = 'message-avatar';
-      avatar.textContent = role === 'assistant' ? '🌱' : '👤';
+      const avatar = document.createElement("div");
+      avatar.className = "message-avatar";
+      avatar.textContent = role === "assistant" ? "🌱" : "👤";
 
-      const contentDiv = document.createElement('div');
-      contentDiv.className = 'message-content';
-      contentDiv.innerHTML = String(content).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      const contentDiv = document.createElement("div");
+      contentDiv.className = "message-content";
+      contentDiv.innerHTML = content.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
 
       messageDiv.appendChild(avatar);
       messageDiv.appendChild(contentDiv);
@@ -426,151 +314,57 @@
 
       messagesDiv.scrollTop = messagesDiv.scrollHeight;
 
-      setTimeout(() => {
-        messageDiv.style.opacity = '1';
-      }, 10);
+      setTimeout(() => { messageDiv.style.opacity = "1"; }, 10);
     }
 
     async function sendMessage() {
-      const input = document.getElementById('userInput');
+      const input = document.getElementById("userInput");
       const message = input.value.trim();
       if (!message) return;
 
-      addMessage('user', message);
+      addMessage("user", message);
+      conversationHistory.push({ role: "user", content: message });
 
-      userProfile.responses.push(message);
-      conversationHistory.push({ role: 'user', content: message });
-
-      input.value = '';
-      input.style.height = 'auto';
+      input.value = "";
+      input.style.height = "auto";
       input.disabled = true;
-      document.getElementById('sendButton').disabled = true;
+      document.getElementById("sendButton").disabled = true;
 
       await callAPI(conversationHistory);
 
       input.disabled = false;
-      document.getElementById('sendButton').disabled = false;
+      document.getElementById("sendButton").disabled = false;
       input.focus();
     }
 
     async function callAPI(messages) {
-      document.getElementById('typingIndicator').classList.add('active');
+      document.getElementById("typingIndicator").classList.add("active");
 
       try {
-        const response = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const response = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ messages })
         });
 
+        const data = await response.json().catch(() => ({}));
+
+        document.getElementById("typingIndicator").classList.remove("active");
+
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.error || `API error: ${response.status}`);
+          // Show the server's detail message if present
+          const details = data.details ? ` (${data.details})` : "";
+          throw new Error((data.error || `API error: ${response.status}`) + details);
         }
 
-        const data = await response.json();
-        document.getElementById('typingIndicator').classList.remove('active');
-
-        addMessage('assistant', data.response);
-        conversationHistory.push({ role: 'assistant', content: data.response });
-
-        checkIfComplete(data.response);
+        addMessage("assistant", data.response || "");
+        conversationHistory.push({ role: "assistant", content: data.response || "" });
 
       } catch (error) {
-        console.error('Error:', error);
-        document.getElementById('typingIndicator').classList.remove('active');
-        addMessage('assistant', 'I apologize, but I encountered an error. Please try refreshing the page and trying again.');
+        console.error("Error:", error);
+        document.getElementById("typingIndicator").classList.remove("active");
+        addMessage("assistant", "I apologize, but I encountered an error. Please refresh and try again.");
       }
-    }
-
-    function checkIfComplete(response) {
-      const lowercaseResponse = String(response).toLowerCase();
-
-      if (lowercaseResponse.includes('your purpose piece is')) {
-        const archetypes = ['steward', 'maker', 'connector', 'guardian', 'explorer', 'sage'];
-        for (let archetype of archetypes) {
-          if (lowercaseResponse.includes(archetype)) {
-            userProfile.archetype = archetype.charAt(0).toUpperCase() + archetype.slice(1);
-            break;
-          }
-        }
-
-        const domains = ['human being', 'society', 'nature', 'technology', 'finance', 'economy', 'legacy', 'vision'];
-        for (let domain of domains) {
-          if (lowercaseResponse.includes(domain)) {
-            userProfile.domain = domain.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-            break;
-          }
-        }
-
-        const scales = ['local', 'bioregional', 'global', 'civilizational'];
-        for (let scale of scales) {
-          if (lowercaseResponse.includes(scale)) {
-            userProfile.scale = scale.charAt(0).toUpperCase() + scale.slice(1);
-            break;
-          }
-        }
-
-        setTimeout(() => {
-          showEmailCapture();
-        }, 2000);
-      }
-    }
-
-    function showEmailCapture() {
-      document.getElementById('emailCapture').classList.add('active');
-      document.getElementById('userInput').disabled = true;
-      document.getElementById('sendButton').disabled = true;
-    }
-
-    async function submitEmail() {
-      const email = document.getElementById('emailInput').value.trim();
-
-      if (!email || !email.includes('@')) {
-        alert('Please enter a valid email address');
-        return;
-      }
-
-      userProfile.email = email;
-
-      // TODO: Send userProfile to your backend / email provider
-      console.log('User profile:', userProfile);
-
-      showResult();
-    }
-
-    function showResult() {
-      const resultDiv = document.getElementById('resultDisplay');
-      resultDiv.innerHTML = `
-        <h2>You are a ${userProfile.archetype}</h2>
-        <p class="archetype-essence">"${getArchetypeEssence(userProfile.archetype)}"</p>
-        <div class="next-steps">
-          <h3>What's Next?</h3>
-          <p>Check your email for your complete Purpose Piece profile including:</p>
-          <ul>
-            <li>Your full archetype description with strengths and shadow patterns</li>
-            <li>Your domain alignment (${userProfile.domain || 'to be determined'})</li>
-            <li>Your natural scale of impact (${userProfile.scale || 'to be determined'})</li>
-            <li>Specific actions you can take this week</li>
-          </ul>
-          <p style="margin-top: 1rem;"><strong>Want the complete profile with personalized action menu?</strong></p>
-          <button onclick="window.location.href='#upgrade'" style="margin-top: 1rem;">Get Full Profile - $47</button>
-        </div>
-      `;
-      resultDiv.classList.add('active');
-      resultDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-
-    function getArchetypeEssence(archetype) {
-      const essences = {
-        'Steward': 'I tend to systems and ensure they remain whole and functional.',
-        'Maker': 'I build what doesn\'t yet exist and bring ideas into form.',
-        'Connector': 'I weave relationships and create networks where collaboration emerges.',
-        'Guardian': 'I protect what matters and hold boundaries so life can flourish.',
-        'Explorer': 'I venture into unknown territory and bring back what\'s needed.',
-        'Sage': 'I hold wisdom and offer perspective that clarifies what\'s true.'
-      };
-      return essences[archetype] || '';
     }
   </script>
 </body>
