@@ -1,5 +1,9 @@
 {
   "name": "purpose-piece",
   "version": "1.0.0",
-  "private": true
+  "private": true,
+  "type": "commonjs",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.24.0"
+  }
 }
