@@ -1,542 +1,659 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Purpose Piece - Discover Your Piece</title>
-  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      /* NextUs Brand Colors */
-      --brand-gold: #E89842;
-      --brand-gold-dark: #D17D2E;
-      --brand-slate: #7B8C9E;
-      --brand-slate-dark: #5C6B7A;
-      --brand-slate-light: #A8B5C4;
-      
-      /* Backgrounds */
-      --bg-primary: #FFFFFF;
-      --bg-secondary: #F8F9FA;
-      --bg-texture: #F5F5F5;
-      
-      /* Text */
-      --text-primary: #2A2A2A;
-      --text-secondary: #5A6A7A;
-      --text-light: #8A9AAA;
-      
-      /* Spacing */
-      --space-xs: 0.5rem;
-      --space-sm: 1rem;
-      --space-md: 1.5rem;
-      --space-lg: 2rem;
-      --space-xl: 3rem;
-      
-      /* Typography */
-      --font-display: 'Crimson Pro', serif;
-      --font-body: 'Work Sans', sans-serif;
-    }
-    
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
-    body {
-      font-family: var(--font-body);
-      background: var(--bg-texture);
-      color: var(--text-primary);
-      line-height: 1.6;
-      overflow-x: hidden;
-      position: relative;
-    }
-    
-    /* Subtle texture background */
-    body::before {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-image: 
-        repeating-linear-gradient(
-          0deg,
-          rgba(255, 255, 255, 0.03),
-          rgba(255, 255, 255, 0.03) 1px,
-          transparent 1px,
-          transparent 2px
-        ),
-        repeating-linear-gradient(
-          90deg,
-          rgba(255, 255, 255, 0.03),
-          rgba(255, 255, 255, 0.03) 1px,
-          transparent 1px,
-          transparent 2px
-        );
-      pointer-events: none;
-      z-index: 0;
-    }
-    
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: var(--space-lg);
-      position: relative;
-      z-index: 1;
-    }
-    
-    /* Top brand bar */
-    .brand-bar {
-      height: 4px;
-      background: linear-gradient(90deg, var(--brand-gold), var(--brand-gold-dark));
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 100;
-    }
-    
-    .header {
-      text-align: center;
-      margin-top: var(--space-lg);
-      margin-bottom: var(--space-xl);
-      animation: fadeInDown 0.8s ease-out;
-    }
-    
-    .header-logo {
-      width: 120px;
-      height: 120px;
-      margin: 0 auto var(--space-md);
-      display: block;
-      filter: drop-shadow(0 4px 6px rgba(232, 152, 66, 0.2));
-    }
-    
-    .header h1 {
-      font-family: var(--font-display);
-      font-size: clamp(2rem, 5vw, 3.5rem);
-      font-weight: 600;
-      color: var(--text-primary);
-      margin-bottom: var(--space-sm);
-      letter-spacing: -0.02em;
-    }
-    
-    .header p {
-      font-size: 1.125rem;
-      color: var(--text-secondary);
-      max-width: 600px;
-      margin: 0 auto;
-    }
-    
-    .chat-container {
-      background: var(--bg-primary);
-      border-radius: 12px;
-      box-shadow: 
-        0 2px 4px rgba(0, 0, 0, 0.04),
-        0 8px 16px rgba(0, 0, 0, 0.06);
-      border: 1px solid rgba(123, 140, 158, 0.1);
-      overflow: hidden;
-      animation: fadeInUp 0.8s ease-out 0.2s backwards;
-    }
-    
-    .messages {
-      padding: var(--space-lg);
-      min-height: 400px;
-      max-height: 600px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-md);
-      background: var(--bg-secondary);
-    }
-    
-    .messages::-webkit-scrollbar {
-      width: 8px;
-    }
-    
-    .messages::-webkit-scrollbar-track {
-      background: var(--bg-texture);
-    }
-    
-    .messages::-webkit-scrollbar-thumb {
-      background: var(--brand-slate-light);
-      border-radius: 4px;
-    }
-    
-    .message {
-      display: flex;
-      gap: var(--space-sm);
-      animation: slideIn 0.4s ease-out;
-      opacity: 0;
-      animation-fill-mode: forwards;
-    }
-    
-    .message.assistant {
-      align-items: flex-start;
-    }
-    
-    .message.user {
-      flex-direction: row-reverse;
-    }
-    
-    .message-avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.25rem;
-      flex-shrink: 0;
-      border: 2px solid transparent;
-      overflow: hidden;
-      padding: 6px;
-    }
-    
-    .message-avatar img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
-    
-    .message.assistant .message-avatar {
-      background: white;
-      border-color: var(--brand-gold);
-      padding: 4px;
-    }
-    
-    .message.user .message-avatar {
-      background: linear-gradient(135deg, var(--brand-gold), var(--brand-gold-dark));
-      color: white;
-      border-color: var(--brand-gold);
-      font-size: 1.5rem;
-    }
-    
-    .message-content {
-      max-width: 70%;
-      padding: var(--space-sm) var(--space-md);
-      border-radius: 12px;
-      font-size: 1rem;
-      line-height: 1.6;
-    }
-    
-    .message.assistant .message-content {
-      background: white;
-      color: var(--text-primary);
-      border: 1px solid rgba(123, 140, 158, 0.1);
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    }
-    
-    .message.user .message-content {
-      background: var(--brand-slate);
-      color: white;
-    }
-    
-    .typing-indicator {
-      display: none;
-      align-items: center;
-      gap: var(--space-sm);
-      padding: var(--space-sm);
-    }
-    
-    .typing-indicator.active {
-      display: flex;
-    }
-    
-    .typing-dots {
-      display: flex;
-      gap: 4px;
-      padding: var(--space-sm) var(--space-md);
-      background: white;
-      border: 1px solid rgba(123, 140, 158, 0.1);
-      border-radius: 12px;
-    }
-    
-    .typing-dots span {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--brand-gold);
-      animation: typingDot 1.4s infinite;
-    }
-    
-    .typing-dots span:nth-child(2) {
-      animation-delay: 0.2s;
-    }
-    
-    .typing-dots span:nth-child(3) {
-      animation-delay: 0.4s;
-    }
-    
-    .input-area {
-      border-top: 1px solid rgba(123, 140, 158, 0.1);
-      padding: var(--space-md);
-      background: white;
-    }
-    
-    .input-container {
-      display: flex;
-      gap: var(--space-sm);
-      align-items: flex-end;
-    }
-    
-    textarea {
-      flex: 1;
-      padding: var(--space-sm) var(--space-md);
-      border: 2px solid rgba(123, 140, 158, 0.2);
-      border-radius: 8px;
-      font-family: var(--font-body);
-      font-size: 1rem;
-      resize: none;
-      min-height: 52px;
-      max-height: 120px;
-      transition: border-color 0.2s ease;
-      background: var(--bg-secondary);
-    }
-    
-    textarea:focus {
-      outline: none;
-      border-color: var(--brand-gold);
-      background: white;
-    }
-    
-    button {
-      padding: var(--space-sm) var(--space-md);
-      background: linear-gradient(135deg, var(--brand-gold), var(--brand-gold-dark));
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-family: var(--font-body);
-      font-size: 1rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      white-space: nowrap;
-      box-shadow: 0 2px 4px rgba(232, 152, 66, 0.2);
-    }
-    
-    button:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 8px rgba(232, 152, 66, 0.3);
-    }
-    
-    button:active {
-      transform: translateY(0);
-    }
-    
-    button:disabled {
-      background: var(--brand-slate-light);
-      color: white;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
-    
-    @keyframes fadeInDown {
-      from {
-        opacity: 0;
-        transform: translateY(-20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateX(-10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(0);
-      }
-    }
-    
-    @keyframes typingDot {
-      0%, 60%, 100% {
-        transform: translateY(0);
-        opacity: 0.4;
-      }
-      30% {
-        transform: translateY(-8px);
-        opacity: 1;
-      }
-    }
-    
-    @media (max-width: 768px) {
-      .container {
-        padding: var(--space-md);
-      }
-      
-      .message-content {
-        max-width: 85%;
-      }
-      
-      .input-container {
-        flex-direction: column;
-      }
-      
-      button {
-        width: 100%;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purpose Piece - Discover Where You Fit</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Work Sans', sans-serif;
+            background: linear-gradient(to bottom, #f5f5f5 0%, #e8e8e8 100%);
+            min-height: 100vh;
+            color: #2c3e50;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .brand-bar {
+            height: 4px;
+            background: linear-gradient(90deg, #E89842 0%, #d4873a 100%);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(0,0,0,0.01) 2px,
+                    rgba(0,0,0,0.01) 4px
+                );
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 60px 20px 40px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo img {
+            width: 120px;
+            height: auto;
+            filter: drop-shadow(0 2px 8px rgba(232, 152, 66, 0.15));
+        }
+
+        h1 {
+            font-family: 'Crimson Pro', serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+
+        .subtitle {
+            font-family: 'Work Sans', sans-serif;
+            font-size: 1.1rem;
+            text-align: center;
+            color: #7B8C9E;
+            margin-bottom: 40px;
+            font-weight: 400;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 
+                0 2px 8px rgba(0,0,0,0.04),
+                0 8px 24px rgba(0,0,0,0.06);
+            border: 1px solid rgba(123, 140, 158, 0.1);
+            margin-bottom: 24px;
+        }
+
+        .welcome-text {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #4a5568;
+            margin-bottom: 32px;
+        }
+
+        .welcome-text p {
+            margin-bottom: 16px;
+        }
+
+        .welcome-text p:last-child {
+            margin-bottom: 0;
+        }
+
+        .progress-container {
+            margin-bottom: 32px;
+        }
+
+        .progress-text {
+            font-size: 0.9rem;
+            color: #7B8C9E;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .progress-bar-bg {
+            height: 8px;
+            background: #e8e8e8;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #E89842 0%, #d4873a 100%);
+            border-radius: 8px;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 8px rgba(232, 152, 66, 0.3);
+        }
+
+        .question-text {
+            font-family: 'Crimson Pro', serif;
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 28px;
+            line-height: 1.4;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-button {
+            background: white;
+            border: 2px solid #e8e8e8;
+            border-radius: 10px;
+            padding: 20px 24px;
+            font-family: 'Work Sans', sans-serif;
+            font-size: 1.05rem;
+            color: #4a5568;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: #E89842;
+            transform: scaleY(0);
+            transition: transform 0.2s ease;
+        }
+
+        .option-button:hover {
+            border-color: #E89842;
+            background: rgba(232, 152, 66, 0.02);
+            transform: translateX(4px);
+        }
+
+        .option-button:hover::before {
+            transform: scaleY(1);
+        }
+
+        .option-button:active {
+            transform: translateX(2px) scale(0.99);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #E89842 0%, #d4873a 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 18px 40px;
+            font-family: 'Work Sans', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 
+                0 4px 12px rgba(232, 152, 66, 0.25),
+                0 2px 4px rgba(0,0,0,0.1);
+            width: 100%;
+            display: block;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 20px rgba(232, 152, 66, 0.35),
+                0 3px 6px rgba(0,0,0,0.15);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .result-title {
+            font-family: 'Crimson Pro', serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 12px;
+            color: #2c3e50;
+        }
+
+        .result-subtitle {
+            text-align: center;
+            font-size: 1.3rem;
+            color: #E89842;
+            font-weight: 600;
+            margin-bottom: 32px;
+        }
+
+        .result-description {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #4a5568;
+            margin-bottom: 24px;
+        }
+
+        .result-description p {
+            margin-bottom: 16px;
+        }
+
+        .responsibility-question {
+            background: rgba(232, 152, 66, 0.05);
+            border-left: 4px solid #E89842;
+            padding: 20px 24px;
+            margin: 24px 0;
+            border-radius: 6px;
+        }
+
+        .responsibility-question p {
+            font-style: italic;
+            color: #7B8C9E;
+            margin-bottom: 0;
+        }
+
+        .blended-notice {
+            background: rgba(123, 140, 158, 0.08);
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+            color: #7B8C9E;
+        }
+
+        .progress-signal {
+            text-align: center;
+            font-size: 0.95rem;
+            color: #E89842;
+            font-weight: 500;
+            margin: 20px 0;
+            font-style: italic;
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 40px 16px 24px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .card {
+                padding: 28px 20px;
+            }
+
+            .question-text {
+                font-size: 1.35rem;
+            }
+
+            .option-button {
+                padding: 16px 20px;
+                font-size: 1rem;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
 </head>
 <body>
-  <div class="brand-bar"></div>
-  
-  <div class="container">
-    <div class="header">
-      <img src="/logo.png" alt="Purpose Piece" class="header-logo" />
-      <h1>Purpose Piece</h1>
-      <p>Discover where you fit in the work of building humanity's future</p>
-    </div>
+    <div class="brand-bar"></div>
     
-    <div class="chat-container">
-      <div class="messages" id="messages"></div>
-      
-      <div class="typing-indicator" id="typingIndicator">
-        <div class="message-avatar">
-          <img src="/logo.png" alt="Purpose Piece" />
+    <div class="container">
+        <div class="logo">
+            <img src="/logo.png" alt="Purpose Piece">
         </div>
-        <div class="typing-dots">
-          <span></span>
-          <span></span>
-          <span></span>
+
+        <h1>Purpose Piece</h1>
+        <p class="subtitle">Discover where you fit</p>
+
+        <!-- Welcome Screen -->
+        <div id="welcome-screen" class="card">
+            <div class="welcome-text">
+                <p>Welcome. I'm here to help you see where you fit in the work of building humanity's future.</p>
+                
+                <p>This will take about 5 minutes. We'll start with some quick questions to get a sense of your pattern, then make sure it fits.</p>
+                
+                <p>There are no wrong answers. Pick what feels most true in your actual life—not what you wish were true, or what sounds impressive.</p>
+            </div>
+            
+            <button class="btn-primary" onclick="startQuiz()">Ready? Let's begin</button>
         </div>
-      </div>
-      
-      <div class="input-area">
-        <div class="input-container">
-          <textarea 
-            id="userInput" 
-            placeholder="Type your response..." 
-            rows="1"
-          ></textarea>
-          <button id="sendButton" onclick="sendMessage()">Send</button>
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="card hidden">
+            <div class="progress-container">
+                <div class="progress-text" id="progress-text">Question 1 of 10</div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" id="progress-bar" style="width: 10%"></div>
+                </div>
+            </div>
+
+            <div class="question-text" id="question-text"></div>
+            
+            <div class="options" id="options-container"></div>
+            
+            <div class="progress-signal hidden" id="progress-signal"></div>
         </div>
-      </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="card hidden">
+            <h2 class="result-title">Your Purpose Piece</h2>
+            <div class="result-subtitle" id="result-pattern"></div>
+            <div id="blended-notice"></div>
+            <div class="result-description" id="result-description"></div>
+            <div class="responsibility-question" id="responsibility-question"></div>
+
+            <!-- Collective Layer -->
+            <div style="margin-top:40px; padding:24px; background:#fafafa; border-radius:8px;">
+                <h3 style="font-family: 'Crimson Pro', serif; font-size:1.4rem; margin-bottom:16px; color:#2c3e50;">Where This Fits</h3>
+                <div id="collective-layer"></div>
+            </div>
+
+            <!-- Cross-Archetype Pairing Suggestion -->
+            <div style="margin-top:24px; padding:24px; background:rgba(232,152,66,0.05); border-left:4px solid #E89842; border-radius:6px;">
+                <h3 style="font-family: 'Crimson Pro', serif; font-size:1.2rem; margin-bottom:12px; color:#2c3e50;">Strategic Pairing</h3>
+                <p id="pairing-suggestion" style="color:#4a5568; line-height:1.6;"></p>
+            </div>
+
+            <!-- Pod Invitation -->
+            <div style="margin-top:24px; padding:24px; border:1px solid rgba(232,152,66,0.3); border-radius:8px; background:rgba(232,152,66,0.02);">
+                <h3 style="font-family: 'Crimson Pro', serif; font-size:1.4rem; margin-bottom:16px; color:#2c3e50;">Connect with Others</h3>
+                <p id="pod-invite" style="margin-bottom:20px; line-height:1.6;"></p>
+                
+                <!-- Email input instead of prompt() -->
+                <div style="margin-bottom:12px;">
+                    <input type="email" 
+                           id="pod-email" 
+                           placeholder="your@email.com" 
+                           style="width:100%; padding:12px; border:2px solid #e8e8e8; border-radius:8px; font-family:'Work Sans',sans-serif; font-size:1rem;"
+                    />
+                </div>
+                <button class="btn-primary" onclick="connectToPod()">See Who's Building Here</button>
+            </div>
+
+            <div style="margin-top:16px;">
+                <button class="btn-primary" onclick="downloadPurposePiece()">Download Your Purpose Piece</button>
+            </div>
+
+        </div>
     </div>
-  </div>
-  
-  <script>
-    let conversationHistory = [];
 
-    window.onload = function () {
-      callAPI([]);
+    <script>
+        let responses = {};
+        let currentPattern = null;
 
-      const textarea = document.getElementById("userInput");
-      textarea.addEventListener("input", function () {
-        this.style.height = "auto";
-        this.style.height = this.scrollHeight + "px";
-      });
+        const ARCHETYPE_DESCRIPTIONS = {
+            'Steward': {
+                essence: "You keep things running.",
+                core: "You're patient with work that doesn't show immediate results. You see the small cracks before they become breaks. People know they can count on you, even when no one is watching.",
+                responsibility: "What are you tending that no one else sees? What would collapse without your care?"
+            },
+            'Maker': {
+                essence: "You build what doesn't yet exist.",
+                core: "You turn possibility into structure, ideas into reality. You're resourceful, iterative, and value function over perfection. Creation itself energizes you.",
+                responsibility: "What are you building that serves life, not just novelty? What do you need to finish before starting the next thing?"
+            },
+            'Connector': {
+                essence: "You weave relationships.",
+                core: "You see how people and things belong together, and you make those connections real. You hold space without controlling it, facilitating collaboration that wouldn't happen otherwise.",
+                responsibility: "Are you connecting from abundance or depletion? Whose connections are you neglecting while you serve others'?"
+            },
+            'Guardian': {
+                essence: "You protect what matters.",
+                core: "You're willing to stand in uncomfortable positions when something needs defending. You're fierce when protecting, gentle when tending. You hold boundaries so life can flourish.",
+                responsibility: "Are you protecting life, or controlling it? Who guards the guardian?"
+            },
+            'Explorer': {
+                essence: "You venture into unknown territory.",
+                core: "You're comfortable with uncertainty, bringing back what's needed from the edges. You value discovery over certainty, holding paradox without needing to resolve it.",
+                responsibility: "Are you exploring to discover, or to avoid? What have you found that you haven't yet brought back?"
+            },
+            'Sage': {
+                essence: "You hold wisdom.",
+                core: "You see patterns across time and contexts that others miss. You offer perspective without imposing, helping people see clearly. You're patient with complexity.",
+                responsibility: "Are you sharing wisdom, or hoarding it? Is your knowing serving others' clarity, or your identity?"
+            }
+        };
 
-      textarea.addEventListener("keydown", function (e) {
-        if (e.key === "Enter" && !e.shiftKey) {
-          e.preventDefault();
-          sendMessage();
-        }
-      });
-    };
-
-    function addMessage(role, content) {
-      const messagesDiv = document.getElementById("messages");
-      const messageDiv = document.createElement("div");
-      messageDiv.className = `message ${role}`;
-
-      const avatar = document.createElement("div");
-      avatar.className = "message-avatar";
-      
-      if (role === "assistant") {
-        const img = document.createElement("img");
-        img.src = "/logo.png";
-        img.alt = "Purpose Piece";
-        avatar.appendChild(img);
-      } else {
-        avatar.textContent = "👤";
-      }
-
-      const contentDiv = document.createElement("div");
-      contentDiv.className = "message-content";
-      contentDiv.innerHTML = content.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-
-      messageDiv.appendChild(avatar);
-      messageDiv.appendChild(contentDiv);
-      messagesDiv.appendChild(messageDiv);
-
-      messagesDiv.scrollTop = messagesDiv.scrollHeight;
-
-      setTimeout(() => {
-        messageDiv.style.opacity = "1";
-      }, 10);
-    }
-
-    async function sendMessage() {
-      const input = document.getElementById("userInput");
-      const message = input.value.trim();
-      if (!message) return;
-
-      addMessage("user", message);
-      conversationHistory.push({ role: "user", content: message });
-
-      input.value = "";
-      input.style.height = "auto";
-      input.disabled = true;
-      document.getElementById("sendButton").disabled = true;
-
-      await callAPI(conversationHistory);
-
-      input.disabled = false;
-      document.getElementById("sendButton").disabled = false;
-      input.focus();
-    }
-
-    async function callAPI(messages) {
-      document.getElementById("typingIndicator").classList.add("active");
-
-      try {
-        const response = await fetch("/api/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ messages })
-        });
-
-        const data = await response.json().catch(() => ({}));
-
-        document.getElementById("typingIndicator").classList.remove("active");
-
-        if (!response.ok) {
-          const details = data.details ? ` (${data.details})` : "";
-          throw new Error((data.error || `API error: ${response.status}`) + details);
+        async function startQuiz() {
+            document.getElementById('welcome-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'start' })
+            });
+            
+            const data = await response.json();
+            displayQuestion(data.question, data.progress);
         }
 
-        addMessage("assistant", data.response || "");
-        conversationHistory.push({
-          role: "assistant",
-          content: data.response || ""
-        });
-      } catch (error) {
-        console.error("Error:", error);
-        document.getElementById("typingIndicator").classList.remove("active");
-        addMessage(
-          "assistant",
-          "I apologize, but I encountered an error. Please refresh and try again."
-        );
-      }
+        function displayQuestion(question, progress) {
+            const questionText = document.getElementById('question-text');
+            const optionsContainer = document.getElementById('options-container');
+            const progressText = document.getElementById('progress-text');
+            const progressBar = document.getElementById('progress-bar');
+            const progressSignal = document.getElementById('progress-signal');
+
+            questionText.textContent = question.text;
+            progressText.textContent = `Question ${progress.current} of ${progress.total}`;
+            progressBar.style.width = `${(progress.current / progress.total) * 100}%`;
+
+            optionsContainer.innerHTML = '';
+
+            question.options.forEach(option => {
+                const button = document.createElement('button');
+                button.className = 'option-button';
+                button.textContent = option.text;
+                button.onclick = () => selectOption(question.id, option.id);
+                optionsContainer.appendChild(button);
+            });
+
+            progressSignal.classList.add('hidden');
+            if (progress.current === 5) {
+                progressSignal.textContent = "We're getting somewhere...";
+                progressSignal.classList.remove('hidden');
+            } else if (progress.current === 8) {
+                progressSignal.textContent = "Almost there...";
+                progressSignal.classList.remove('hidden');
+            }
+        }
+
+        async function selectOption(questionId, answer) {
+            responses[questionId] = answer;
+
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    action: 'next',
+                    questionId: questionId,
+                    responses: responses
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.status === 'COMPLETE' || data.status === 'NEEDS_REFINEMENT') {
+                showResult(data);
+            } else {
+                displayQuestion(data.question, data.progress);
+            }
+        }
+
+        function showResult(data) {
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+
+            const pattern = data.pattern;
+            
+            currentPattern = pattern;
+            populateCollectiveLayer(pattern);
+            
+            // Display pairing suggestion
+            if (data.pairingSuggestion) {
+                const pairingSuggestionEl = document.getElementById('pairing-suggestion');
+                if (pairingSuggestionEl) {
+                    pairingSuggestionEl.textContent = data.pairingSuggestion;
+                }
+            }
+            
+            // Phase 2 telemetry (dashboard)
+            fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'telemetry', pattern })
+            }).catch(()=>{});
+const patternText = `${pattern.archetype} in ${pattern.domain} / ${pattern.scale}`;
+            document.getElementById('result-pattern').textContent = patternText;
+
+            // Show blended notice if applicable
+            const blendedNotice = document.getElementById('blended-notice');
+            if (data.isBlended && pattern.secondaryArchetype) {
+                blendedNotice.innerHTML = `<div class="blended-notice">Your pattern shows <strong>${pattern.archetype}</strong> with strong <strong>${pattern.secondaryArchetype}</strong> qualities. This blended pattern is real—not everyone fits cleanly into one archetype.</div>`;
+            }
+
+            // Get archetype description
+            const desc = ARCHETYPE_DESCRIPTIONS[pattern.archetype];
+            
+            if (desc) {
+                document.getElementById('result-description').innerHTML = `
+                    <p><strong>${desc.essence}</strong></p>
+                    <p>${desc.core}</p>
+                    <p style="margin-top: 24px; font-style: italic; color: #7B8C9E;">You're a <strong>${pattern.archetype}</strong> working in <strong>${pattern.domain}</strong> at <strong>${pattern.scale}</strong> scale.</p>
+                `;
+                
+                // Responsibility question (friction point)
+                document.getElementById('responsibility-question').innerHTML = `
+                    <p>${desc.responsibility}</p>
+                `;
+            } else {
+                document.getElementById('result-description').innerHTML = `
+                    <p>You're a <strong>${pattern.archetype}</strong> working in <strong>${pattern.domain}</strong> at <strong>${pattern.scale}</strong> scale.</p>
+                    <p>This is where you fit in the work of building humanity's future.</p>
+                `;
+            }
+        }
+    function populateCollectiveLayer(pattern) {
+    const collective = document.getElementById('collective-layer');
+    if (!collective) return;
+
+    collective.innerHTML = `
+        <p>Right now, <strong>${pattern.domain}</strong> needs more <strong>${pattern.archetype}s</strong>.</p>
+        <p>You're not surplus. You're signal. Your pattern contributes to the larger architecture of who's building what.</p>
+    `;
+
+    const podInvite = document.getElementById('pod-invite');
+    if (podInvite) {
+        podInvite.innerHTML = `
+            <strong>${pattern.archetype}s</strong> working in <strong>${pattern.domain}</strong> at <strong>${pattern.scale}</strong> scale.
+            <br><br>
+            These are lightweight coordination spaces—no obligation, just alignment.
+        `;
     }
-  </script>
+}
+
+
+async function connectToPod() {
+    if (!currentPattern) return;
+    
+    const emailInput = document.getElementById('pod-email');
+    const email = emailInput?.value?.trim();
+    
+    if (!email || !email.includes('@')) {
+        alert('Please enter a valid email address.');
+        emailInput?.focus();
+        return;
+    }
+
+    try {
+        const resp = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'pod', email, pattern: currentPattern })
+        });
+        const data = await resp.json();
+        
+        if (data.ok) {
+            alert(data.message || "You're on the list. We'll reach out when pods launch.");
+            emailInput.value = ''; // Clear input
+        } else {
+            alert('Something went wrong. Please try again.');
+        }
+    } catch (e) {
+        alert("Couldn't register right now. Please save your Purpose Piece and try again later.");
+    }
+}
+
+function downloadPurposePiece() {
+    if (!currentPattern) return;
+    
+    const title = `Purpose Piece — ${currentPattern.archetype} in ${currentPattern.domain} (${currentPattern.scale})`;
+    const content = document.getElementById('result-screen')?.innerHTML || '';
+    
+    // Include inline CSS for styled download
+    const css = `
+        <style>
+            body { font-family: 'Work Sans', -apple-system, sans-serif; max-width: 700px; margin: 40px auto; padding: 20px; background: #f5f5f5; }
+            .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+            .result-title { font-family: 'Crimson Pro', Georgia, serif; font-size: 2rem; margin-bottom: 12px; color: #2c3e50; text-align: center; }
+            .result-subtitle { font-size: 1.3rem; color: #E89842; font-weight: 600; margin-bottom: 24px; text-align: center; }
+            .result-description { line-height: 1.8; color: #4a5568; margin-bottom: 20px; }
+            .result-description p { margin-bottom: 16px; }
+            .responsibility-question { background: rgba(232,152,66,0.05); border-left: 4px solid #E89842; padding: 20px; margin: 20px 0; border-radius: 6px; }
+            .responsibility-question p { font-style: italic; color: #7B8C9E; margin: 0; }
+            h3 { font-family: 'Crimson Pro', Georgia, serif; color: #2c3e50; margin-bottom: 12px; }
+            button { display: none; } /* Hide buttons in downloaded version */
+            input { display: none; } /* Hide inputs in downloaded version */
+        </style>
+    `;
+    
+    const html = `<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>${title}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    ${css}
+</head>
+<body>
+    <div class="card">
+        ${content}
+    </div>
+</body>
+</html>`;
+    
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `purpose-piece-${currentPattern.archetype}-${currentPattern.domain}-${currentPattern.scale}`.replace(/\s+/g,'-').toLowerCase() + '.html';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+}
+
+</script>
 </body>
 </html>
