@@ -85,7 +85,7 @@ const QUESTIONS = [
     id: 'q10',
     text: 'Your natural contribution tends to be:',
     options: [
-      { id: 'A', text: 'Helping people see what they couldn't see before', signals: { archetype: 'SAGE', domain: 'HUMAN_BEING' } },
+      { id: 'A', text: "Helping people see what they couldn't see before", signals: { archetype: 'SAGE', domain: 'HUMAN_BEING' } },
       { id: 'B', text: 'Making sure what matters stays protected', signals: { archetype: 'GUARDIAN', domain: 'LEGACY' } },
       { id: 'C', text: 'Discovering what's possible at the edges', signals: { archetype: 'EXPLORER', domain: 'VISION' } },
       { id: 'D', text: 'Building the infrastructure others need', signals: { archetype: 'MAKER', domain: 'TECHNOLOGY' } }
