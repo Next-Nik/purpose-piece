@@ -341,7 +341,7 @@
         <!-- Quiz Screen -->
         <div id="quiz-screen" class="card hidden">
             <div class="progress-container">
-                <div class="progress-text" id="progress-text">Question 1 of 10</div>
+                <div class="progress-text" id="progress-text">Question 1</div>
                 <div class="progress-bar-bg">
                     <div class="progress-bar-fill" id="progress-bar" style="width: 10%"></div>
                 </div>
@@ -438,14 +438,33 @@
             document.getElementById('welcome-screen').classList.add('hidden');
             document.getElementById('quiz-screen').classList.remove('hidden');
             
-            const response = await fetch('/api/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'start' })
-            });
-            
-            const data = await response.json();
-            displayQuestion(data.question, data.progress);
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'start' })
+                });
+                
+                if (!response.ok) {
+                    console.error('API error:', response.status, response.statusText);
+                    alert('Could not start quiz. Please refresh and try again.');
+                    return;
+                }
+                
+                const data = await response.json();
+                console.log('Quiz started:', data);
+                
+                if (!data.question || !data.progress) {
+                    console.error('Invalid data format:', data);
+                    alert('Unexpected response format. Please refresh and try again.');
+                    return;
+                }
+                
+                displayQuestion(data.question, data.progress);
+            } catch (error) {
+                console.error('Error starting quiz:', error);
+                alert('Could not connect to server. Please check your connection and try again.');
+            }
         }
 
         function displayQuestion(question, progress) {
@@ -456,7 +475,8 @@
             const progressSignal = document.getElementById('progress-signal');
 
             questionText.textContent = question.text;
-            progressText.textContent = `Question ${progress.current} of ${progress.total}`;
+            // Adaptive progress text (doesn't commit to total)
+            progressText.textContent = `Question ${progress.current}`;
             progressBar.style.width = `${(progress.current / progress.total) * 100}%`;
 
             optionsContainer.innerHTML = '';
@@ -482,22 +502,37 @@
         async function selectOption(questionId, answer) {
             responses[questionId] = answer;
 
-            const response = await fetch('/api/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    action: 'next',
-                    questionId: questionId,
-                    responses: responses
-                })
-            });
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        action: 'next',
+                        questionId: questionId,
+                        responses: responses
+                    })
+                });
 
-            const data = await response.json();
+                if (!response.ok) {
+                    console.error('API error:', response.status, response.statusText);
+                    alert('Could not load next question. Please refresh and try again.');
+                    return;
+                }
 
-            if (data.status === 'COMPLETE' || data.status === 'NEEDS_REFINEMENT') {
-                showResult(data);
-            } else {
-                displayQuestion(data.question, data.progress);
+                const data = await response.json();
+                console.log('Response data:', data);
+
+                if (data.status === 'COMPLETE' || data.status === 'NEEDS_REFINEMENT') {
+                    showResult(data);
+                } else if (data.question && data.progress) {
+                    displayQuestion(data.question, data.progress);
+                } else {
+                    console.error('Unexpected data format:', data);
+                    alert('Unexpected response. Please refresh and try again.');
+                }
+            } catch (error) {
+                console.error('Error loading next question:', error);
+                alert('Could not connect to server. Please check your connection and try again.');
             }
         }
 
