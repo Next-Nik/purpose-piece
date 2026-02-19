@@ -87,7 +87,7 @@ const QUESTIONS = [
     options: [
       { id: 'A', text: "Helping people see what they couldn't see before", signals: { archetype: 'SAGE', domain: 'HUMAN_BEING' } },
       { id: 'B', text: 'Making sure what matters stays protected', signals: { archetype: 'GUARDIAN', domain: 'LEGACY' } },
-      { id: 'C', text: 'Discovering what's possible at the edges', signals: { archetype: 'EXPLORER', domain: 'VISION' } },
+      { id: 'C', text: "Discovering what's possible at the edges", signals: { archetype: 'EXPLORER', domain: 'VISION' } },
       { id: 'D', text: 'Building the infrastructure others need', signals: { archetype: 'MAKER', domain: 'TECHNOLOGY' } }
     ],
     weight: 1.5 // Multi-way question with clear archetype + domain signals
