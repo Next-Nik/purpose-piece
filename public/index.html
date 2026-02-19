@@ -399,7 +399,13 @@
             document.getElementById('welcome-screen').classList.add('hidden');
             document.getElementById('chat-screen').classList.remove('hidden');
             
-            // Start conversation with Claude
+            // Add initial user message to start conversation
+            conversationHistory.push({
+                role: 'user',
+                content: 'Ready'
+            });
+            
+            // Get first response from Claude
             await sendToAPI();
         }
 
