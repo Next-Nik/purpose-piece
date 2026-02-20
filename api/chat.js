@@ -132,8 +132,8 @@ async function callClaude(prompt) {
 // Shown once when conversation starts
 // ─────────────────────────────────────────────
 
-function buildWelcome(sessionId) {
-  return `[session:${sessionId}]Welcome. I'm here to help you see where you fit in the work of building humanity's future.
+function buildWelcome() {
+  return `Welcome. I'm here to help you see where you fit in the work of building humanity's future.
 
 This will take about 5 minutes. I'll ask some quick questions to get a sense of your pattern, then we'll make sure it fits.
 
@@ -166,7 +166,7 @@ module.exports = async (req, res) => {
 
   try {
     // ── Step 1: Identify or create session ──────
-    let sessionId = getSessionId(messages);
+    let sessionId = req.body.sessionId || getSessionId(messages);
     let session;
 
     if (!sessionId || !sessions.has(sessionId)) {
@@ -177,12 +177,12 @@ module.exports = async (req, res) => {
 
       // If this is literally the first message (user said "Ready")
       // send welcome + first question
-      const welcomeText = buildWelcome(sessionId);
+      const welcomeText = buildWelcome();
       const firstResponse = engine.start(session);
       const firstQuestion = formatQuestion(firstResponse.question, null);
 
       const fullMessage = `${welcomeText}\n\n${firstQuestion}`;
-      return res.status(200).json({ message: fullMessage });
+      return res.status(200).json({ message: fullMessage, sessionId: sessionId });
     }
 
     // ── Step 2: Retrieve existing session ───────
