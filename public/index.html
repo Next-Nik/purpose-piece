@@ -395,6 +395,7 @@
     <script>
         let conversationHistory = [];
         let messageCount = 0;
+        let sessionId = null;
 
         async function startConversation() {
             document.getElementById('welcome-screen').classList.add('hidden');
@@ -443,7 +444,7 @@
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ messages: conversationHistory })
+                    body: JSON.stringify({ messages: conversationHistory, sessionId: sessionId })
                 });
                 
                 if (!response.ok) {
@@ -451,6 +452,9 @@
                 }
                 
                 const data = await response.json();
+                
+                // Store sessionId on first response
+                if (data.sessionId) sessionId = data.sessionId;
                 
                 typingIndicator.classList.remove('active');
                 
