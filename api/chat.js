@@ -303,8 +303,11 @@ function formatEngineResponse(engineResponse, session) {
     };
   }
 
+  // Unknown engine response type — log it so we can catch new types that lack a formatter.
+  // This turns a silent "Something went wrong" into a debuggable surface.
+  console.warn("formatEngineResponse: unhandled type:", type, JSON.stringify(engineResponse));
   return {
-    text: "Something went wrong. Please refresh and try again.",
+    text: `Unexpected response type: ${type || "undefined"}. Please refresh and try again.`,
     phase: session.phase,
     inputMode: "text"
   };
