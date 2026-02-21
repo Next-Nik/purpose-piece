@@ -2,7 +2,7 @@
 // Uses engine-v3 for structure, Claude only for natural language moments
 
 const Anthropic = require("@anthropic-ai/sdk");
-const engine = require("../lib/engine-v3");
+const engine = require("../lib/engine");
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
