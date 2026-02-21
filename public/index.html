@@ -97,7 +97,6 @@
                 0 8px 24px rgba(0,0,0,0.06);
             border: 1px solid rgba(123, 140, 158, 0.1);
             margin-bottom: 24px;
-            min-height: 400px;
         }
 
         /* Progress bar - numberless */
@@ -127,57 +126,38 @@
             flex-direction: column;
             gap: 16px;
             margin-bottom: 24px;
-            max-height: 500px;
-            overflow-y: auto;
-            padding-right: 8px;
-        }
-
-        .chat-container::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .chat-container::-webkit-scrollbar-track {
-            background: #f0f0f0;
-            border-radius: 3px;
-        }
-
-        .chat-container::-webkit-scrollbar-thumb {
-            background: #E89842;
-            border-radius: 3px;
         }
 
         .message {
             padding: 16px 20px;
             border-radius: 10px;
             max-width: 85%;
-            line-height: 1.6;
+            line-height: 1.7;
             white-space: pre-wrap;
+            font-family: 'Work Sans', sans-serif;
+            font-size: 1rem;
+            font-weight: 400;
+            color: #2c3e50;
         }
 
         .message-assistant {
-            background: #f8f9fa;
+            background: white;
             align-self: flex-start;
+            border: 1px solid #e8e8e8;
             border-left: 3px solid #E89842;
         }
 
         .message-user {
-            background: rgba(232, 152, 66, 0.1);
+            background: #E89842;
+            color: white;
             align-self: flex-end;
-            border-right: 3px solid #E89842;
             text-align: right;
         }
 
-        .message-affirmation {
-            background: rgba(232, 152, 66, 0.15);
-            align-self: center;
-            text-align: center;
-            font-style: italic;
-            color: #7B8C9E;
-            font-size: 0.95rem;
-            animation: fadeIn 0.5s ease-in;
-        }
-
         @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
@@ -490,21 +470,19 @@
             return affirmations.some(phrase => message.includes(phrase));
         }
 
-        function addMessage(text, sender, isAffirmation = false) {
+        function addMessage(text, sender) {
             const chatContainer = document.getElementById('chat-container');
             const messageDiv = document.createElement('div');
-            
-            if (isAffirmation) {
-                messageDiv.className = 'message message-affirmation';
-            } else {
-                messageDiv.className = `message message-${sender}`;
-            }
-            
+            messageDiv.className = `message message-${sender}`;
             messageDiv.textContent = text;
             chatContainer.appendChild(messageDiv);
-            
-            // Scroll to bottom
-            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            // Scroll page so the new message sits near the top of the viewport
+            setTimeout(() => {
+                const rect = messageDiv.getBoundingClientRect();
+                const offset = window.scrollY + rect.top - 80;
+                window.scrollTo({ top: offset, behavior: 'smooth' });
+            }, 50);
         }
 
         function updateProgress() {
