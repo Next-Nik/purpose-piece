@@ -21,7 +21,6 @@
             overflow-x: hidden;
         }
 
-        /* Golden brand bar at top */
         .brand-bar {
             height: 4px;
             background: linear-gradient(90deg, #E89842 0%, #d4873a 100%);
@@ -32,7 +31,6 @@
             z-index: 1000;
         }
 
-        /* Subtle texture overlay */
         body::before {
             content: '';
             position: fixed;
@@ -99,34 +97,12 @@
                 0 8px 24px rgba(0,0,0,0.06);
             border: 1px solid rgba(123, 140, 158, 0.1);
             margin-bottom: 24px;
+            min-height: 400px;
         }
 
-        /* Welcome screen */
-        .welcome-text {
-            font-size: 1.1rem;
-            line-height: 1.8;
-            color: #4a5568;
-            margin-bottom: 32px;
-        }
-
-        .welcome-text p {
-            margin-bottom: 16px;
-        }
-
-        .welcome-text p:last-child {
-            margin-bottom: 0;
-        }
-
-        /* Progress bar */
+        /* Progress bar - numberless */
         .progress-container {
             margin-bottom: 32px;
-        }
-
-        .progress-text {
-            font-size: 0.9rem;
-            color: #7B8C9E;
-            margin-bottom: 8px;
-            font-weight: 500;
         }
 
         .progress-bar-bg {
@@ -140,70 +116,177 @@
             height: 100%;
             background: linear-gradient(90deg, #E89842 0%, #d4873a 100%);
             border-radius: 8px;
-            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 0 8px rgba(232, 152, 66, 0.3);
+            width: 0%;
         }
 
-        /* Question */
-        .question-text {
-            font-family: 'Crimson Pro', serif;
-            font-size: 1.6rem;
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 28px;
-            line-height: 1.4;
-        }
-
-        /* Options */
-        .options {
+        /* Chat interface */
+        .chat-container {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 16px;
+            margin-bottom: 24px;
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 8px;
         }
 
-        .option-button {
-            background: white;
+        .chat-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-container::-webkit-scrollbar-track {
+            background: #f0f0f0;
+            border-radius: 3px;
+        }
+
+        .chat-container::-webkit-scrollbar-thumb {
+            background: #E89842;
+            border-radius: 3px;
+        }
+
+        .message {
+            padding: 16px 20px;
+            border-radius: 10px;
+            max-width: 85%;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .message-assistant {
+            background: #f8f9fa;
+            align-self: flex-start;
+            border-left: 3px solid #E89842;
+        }
+
+        .message-user {
+            background: rgba(232, 152, 66, 0.1);
+            align-self: flex-end;
+            border-right: 3px solid #E89842;
+            text-align: right;
+        }
+
+        .message-affirmation {
+            background: rgba(232, 152, 66, 0.15);
+            align-self: center;
+            text-align: center;
+            font-style: italic;
+            color: #7B8C9E;
+            font-size: 0.95rem;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Input area */
+        .input-container {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 14px 18px;
             border: 2px solid #e8e8e8;
             border-radius: 10px;
-            padding: 20px 24px;
             font-family: 'Work Sans', sans-serif;
-            font-size: 1.05rem;
-            color: #4a5568;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-align: left;
-            font-weight: 500;
-            position: relative;
-            overflow: hidden;
+            font-size: 1rem;
+            transition: border-color 0.2s ease;
         }
 
-        .option-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 4px;
-            height: 100%;
-            background: #E89842;
-            transform: scaleY(0);
-            transition: transform 0.2s ease;
-        }
-
-        .option-button:hover {
+        .chat-input:focus {
+            outline: none;
             border-color: #E89842;
-            background: rgba(232, 152, 66, 0.02);
-            transform: translateX(4px);
         }
 
-        .option-button:hover::before {
-            transform: scaleY(1);
+        .send-button {
+            background: linear-gradient(135deg, #E89842 0%, #d4873a 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 14px 28px;
+            font-family: 'Work Sans', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 
+                0 4px 12px rgba(232, 152, 66, 0.25),
+                0 2px 4px rgba(0,0,0,0.1);
         }
 
-        .option-button:active {
-            transform: translateX(2px) scale(0.99);
+        .send-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 20px rgba(232, 152, 66, 0.35),
+                0 3px 6px rgba(0,0,0,0.15);
         }
 
-        /* Primary button */
+        .send-button:active {
+            transform: translateY(0);
+        }
+
+        .send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .typing-indicator {
+            display: none;
+            align-self: flex-start;
+            padding: 16px 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 3px solid #E89842;
+        }
+
+        .typing-indicator.active {
+            display: block;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .typing-dots span {
+            width: 8px;
+            height: 8px;
+            background: #E89842;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.7; }
+            30% { transform: translateY(-10px); opacity: 1; }
+        }
+
+        .welcome-text {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #4a5568;
+            margin-bottom: 32px;
+        }
+
+        .welcome-text p {
+            margin-bottom: 16px;
+        }
+
         .btn-primary {
             background: linear-gradient(135deg, #E89842 0%, #d4873a 100%);
             color: white;
@@ -229,50 +312,10 @@
                 0 3px 6px rgba(0,0,0,0.15);
         }
 
-        .btn-primary:active {
-            transform: translateY(0);
+        .hidden {
+            display: none;
         }
 
-        /* Result screen */
-        .result-title {
-            font-family: 'Crimson Pro', serif;
-            font-size: 2.2rem;
-            font-weight: 700;
-            text-align: center;
-            margin-bottom: 12px;
-            color: #2c3e50;
-        }
-
-        .result-subtitle {
-            text-align: center;
-            font-size: 1.3rem;
-            color: #E89842;
-            font-weight: 600;
-            margin-bottom: 32px;
-        }
-
-        .result-description {
-            font-size: 1.1rem;
-            line-height: 1.8;
-            color: #4a5568;
-            margin-bottom: 24px;
-        }
-
-        .result-description p {
-            margin-bottom: 16px;
-        }
-
-        /* Progress signal */
-        .progress-signal {
-            text-align: center;
-            font-size: 0.95rem;
-            color: #E89842;
-            font-weight: 500;
-            margin: 20px 0;
-            font-style: italic;
-        }
-
-        /* Responsive */
         @media (max-width: 640px) {
             .container {
                 padding: 40px 16px 24px;
@@ -286,18 +329,9 @@
                 padding: 28px 20px;
             }
 
-            .question-text {
-                font-size: 1.35rem;
+            .message {
+                max-width: 90%;
             }
-
-            .option-button {
-                padding: 16px 20px;
-                font-size: 1rem;
-            }
-        }
-
-        .hidden {
-            display: none;
         }
     </style>
 </head>
@@ -306,7 +340,7 @@
     
     <div class="container">
         <div class="logo">
-            <img src="/logo.png" alt="Purpose Piece">
+            <img src="/logo.png" alt="Purpose Piece" onerror="this.style.display='none'">
         </div>
 
         <h1>Purpose Piece</h1>
@@ -317,177 +351,185 @@
             <div class="welcome-text">
                 <p>Welcome. I'm here to help you see where you fit in the work of building humanity's future.</p>
                 
-                <p>This will take about 5 minutes. We'll start with some quick questions to get a sense of your pattern, then make sure it fits.</p>
+                <p>This will take about 5 minutes. I'll ask some quick questions to get a sense of your pattern, then we'll make sure it fits.</p>
                 
                 <p>There are no wrong answers. Pick what feels most true in your actual life—not what you wish were true, or what sounds impressive.</p>
             </div>
             
-            <button class="btn-primary" onclick="startQuiz()">Ready? Let's begin</button>
+            <button class="btn-primary" onclick="startConversation()">Ready? Let's begin</button>
         </div>
 
-        <!-- Quiz Screen -->
-        <div id="quiz-screen" class="card hidden">
+        <!-- Chat Screen -->
+        <div id="chat-screen" class="card hidden">
             <div class="progress-container">
-                <div class="progress-text" id="progress-text">Question 1 of 8</div>
                 <div class="progress-bar-bg">
-                    <div class="progress-bar-fill" id="progress-bar" style="width: 12.5%"></div>
+                    <div class="progress-bar-fill" id="progress-bar"></div>
                 </div>
             </div>
 
-            <div class="question-text" id="question-text"></div>
-            
-            <div class="options" id="options-container"></div>
-            
-            <div class="progress-signal hidden" id="progress-signal"></div>
-        </div>
+            <div class="chat-container" id="chat-container">
+                <!-- Messages will be added here dynamically -->
+            </div>
 
-        <!-- Result Screen -->
-        <div id="result-screen" class="card hidden">
-            <h2 class="result-title">Your Purpose Piece</h2>
-            <div class="result-subtitle" id="result-pattern"></div>
-            <div class="result-description" id="result-description"></div>
+            <div class="typing-indicator" id="typing-indicator">
+                <div class="typing-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+
+            <div class="input-container">
+                <input 
+                    type="text" 
+                    id="user-input" 
+                    class="chat-input" 
+                    placeholder="Type your answer..."
+                    onkeypress="handleKeyPress(event)"
+                />
+                <button class="send-button" onclick="sendMessage()" id="send-button">Send</button>
+            </div>
         </div>
     </div>
 
     <script>
-        let currentQuestionIndex = 0;
-        let responses = {};
-        let currentQuestion = null;
+        let conversationHistory = [];
+        let messageCount = 0;
+        let sessionId = null;
 
-        const PATTERN_DESCRIPTIONS = {
-            'Steward': {
-                'Human Being': {
-                    'Local': {
-                        essence: "You keep things running close to home.",
-                        description: "You're built to tend—to people, relationships, spaces you know directly. You maintain what exists, repair what's broken, and keep things healthy. You're the person who makes sure the foundation holds."
-                    },
-                    'Bioregional': {
-                        essence: "You tend to the health of your region.",
-                        description: "You maintain the well-being of your ecosystem—the people, land, and relationships within your bioregion. You're patient with work that spans seasons and years."
-                    }
-                },
-                'Nature': {
-                    'Local': {
-                        essence: "You tend to land and living systems close to home.",
-                        description: "You maintain what grows, repair degraded ecosystems, and keep local nature healthy. You're hands-on with the earth you know directly."
-                    },
-                    'Bioregional': {
-                        essence: "You tend to watersheds and regional ecosystems.",
-                        description: "You maintain the health of living systems at regional scale—watersheds, forests, soil. Your work is measured in seasons, not quarters."
-                    }
-                }
-            },
-            'Maker': {
-                'Technology': {
-                    'Global': {
-                        essence: "You build tools that serve planetary systems.",
-                        description: "You create what doesn't yet exist—software, infrastructure, systems that scale globally. You turn possibility into tangible technology."
-                    }
-                },
-                'Vision': {
-                    'Civilizational': {
-                        essence: "You build the future itself.",
-                        description: "You create frameworks, structures, and systems for humanity's long-term trajectory. Your work shapes what becomes possible generations from now."
-                    }
-                }
-            }
-        };
-
-        async function startQuiz() {
+        async function startConversation() {
             document.getElementById('welcome-screen').classList.add('hidden');
-            document.getElementById('quiz-screen').classList.remove('hidden');
+            document.getElementById('chat-screen').classList.remove('hidden');
             
-            // Load first question
-            const response = await fetch('/api/chat-quiz', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'start' })
+            // Add initial user message to start conversation
+            conversationHistory.push({
+                role: 'user',
+                content: 'Ready'
             });
             
-            const data = await response.json();
-            currentQuestion = data.question;
-            displayQuestion(data.question, data.progress);
+            // Get first response from Claude
+            await sendToAPI();
         }
 
-        function displayQuestion(question, progress) {
-            const questionText = document.getElementById('question-text');
-            const optionsContainer = document.getElementById('options-container');
-            const progressText = document.getElementById('progress-text');
+        async function sendMessage() {
+            const input = document.getElementById('user-input');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message to conversation
+            addMessage(message, 'user');
+            conversationHistory.push({
+                role: 'user',
+                content: message
+            });
+            
+            input.value = '';
+            input.disabled = true;
+            document.getElementById('send-button').disabled = true;
+            
+            // Update progress
+            messageCount++;
+            updateProgress();
+            
+            // Get response from Claude
+            await sendToAPI();
+        }
+
+        async function sendToAPI() {
+            const typingIndicator = document.getElementById('typing-indicator');
+            typingIndicator.classList.add('active');
+            
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ messages: conversationHistory, sessionId: sessionId })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('API request failed');
+                }
+                
+                const data = await response.json();
+                
+                // Store sessionId on first response
+                if (data.sessionId) sessionId = data.sessionId;
+                
+                typingIndicator.classList.remove('active');
+                
+                // Add assistant message
+                conversationHistory.push({
+                    role: 'assistant',
+                    content: data.message
+                });
+                
+                // Check if this is an affirmation
+                const isAffirmation = isAffirmationMessage(data.message);
+                addMessage(data.message, 'assistant', isAffirmation);
+                
+                // Re-enable input
+                document.getElementById('user-input').disabled = false;
+                document.getElementById('send-button').disabled = false;
+                document.getElementById('user-input').focus();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                typingIndicator.classList.remove('active');
+                addMessage('Sorry, something went wrong. Please refresh and try again.', 'assistant');
+            }
+        }
+
+        function isAffirmationMessage(message) {
+            const affirmations = [
+                'Good. I\'m getting a clear sense',
+                'This is helpful',
+                'Almost there',
+                'I\'m seeing something'
+            ];
+            return affirmations.some(phrase => message.includes(phrase));
+        }
+
+        function addMessage(text, sender, isAffirmation = false) {
+            const chatContainer = document.getElementById('chat-container');
+            const messageDiv = document.createElement('div');
+            
+            if (isAffirmation) {
+                messageDiv.className = 'message message-affirmation';
+            } else {
+                messageDiv.className = `message message-${sender}`;
+            }
+            
+            messageDiv.textContent = text;
+            chatContainer.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function updateProgress() {
             const progressBar = document.getElementById('progress-bar');
-            const progressSignal = document.getElementById('progress-signal');
-
-            questionText.textContent = question.text;
-            progressText.textContent = `Question ${progress.current} of ${progress.total}`;
-            progressBar.style.width = `${(progress.current / progress.total) * 100}%`;
-
-            // Clear previous options
-            optionsContainer.innerHTML = '';
-
-            // Add new options
-            question.options.forEach(option => {
-                const button = document.createElement('button');
-                button.className = 'option-button';
-                button.textContent = option.text;
-                button.onclick = () => selectOption(question.id, option.id);
-                optionsContainer.appendChild(button);
-            });
-
-            // Show progress signals
-            progressSignal.classList.add('hidden');
-            if (progress.current === 4) {
-                progressSignal.textContent = "We're getting somewhere...";
-                progressSignal.classList.remove('hidden');
-            } else if (progress.current === 6) {
-                progressSignal.textContent = "Almost there...";
-                progressSignal.classList.remove('hidden');
-            }
-        }
-
-        async function selectOption(questionId, answer) {
-            responses[questionId] = answer;
-
-            // Load next question
-            const response = await fetch('/api/chat-quiz', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    action: 'next',
-                    questionId: questionId,
-                    responses: responses
-                })
-            });
-
-            const data = await response.json();
-
-            if (data.complete) {
-                showResult(data.pattern);
-            } else {
-                currentQuestion = data.question;
-                displayQuestion(data.question, data.progress);
-            }
-        }
-
-        function showResult(pattern) {
-            document.getElementById('quiz-screen').classList.add('hidden');
-            document.getElementById('result-screen').classList.remove('hidden');
-
-            const patternText = `${pattern.archetype} in ${pattern.domain} / ${pattern.scale}`;
-            document.getElementById('result-pattern').textContent = patternText;
-
-            // Get description
-            const desc = PATTERN_DESCRIPTIONS[pattern.archetype]?.[pattern.domain]?.[pattern.scale];
             
-            if (desc) {
-                document.getElementById('result-description').innerHTML = `
-                    <p><strong>${desc.essence}</strong></p>
-                    <p>${desc.description}</p>
-                    <p style="margin-top: 24px; font-style: italic; color: #7B8C9E;">This is where you fit.</p>
-                `;
+            // Rough progression based on message count
+            // Phase 1 (Q1-5): 0-50%
+            // Phase 2 (refinement): 50-85%
+            // Phase 3 (validation): 85-100%
+            
+            let progress = 0;
+            if (messageCount <= 5) {
+                progress = messageCount * 10; // 0-50%
+            } else if (messageCount <= 10) {
+                progress = 50 + ((messageCount - 5) * 7); // 50-85%
             } else {
-                document.getElementById('result-description').innerHTML = `
-                    <p>You're a <strong>${pattern.archetype}</strong> working in <strong>${pattern.domain}</strong> at <strong>${pattern.scale}</strong> scale.</p>
-                    <p>This is where you fit in the work of building humanity's future.</p>
-                `;
+                progress = Math.min(85 + ((messageCount - 10) * 5), 100); // 85-100%
+            }
+            
+            progressBar.style.width = `${progress}%`;
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
             }
         }
     </script>
