@@ -1,29 +1,103 @@
 // PURPOSE PIECE — API HANDLER
-// FILE NAMING: lib files use plain names (engine.js, questions.js, scoring.js, profiles.js)
+// Receives input, detects off-road, calls engine, calls voice, returns response.
+// FILE NAMING: lib files use plain names — engine.js, voice.js (no version suffixes)
 
 const Anthropic = require("@anthropic-ai/sdk");
-const engine = require("../lib/engine");
+const engine    = require("../lib/engine");
+const voice     = require("../lib/voice");
+const questions = require("../lib/questions");
+const scoring   = require("../lib/scoring");
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-const sessions = new Map();
+const sessions  = new Map();
 
+// ─── Session management ───────────────────────────────────────────────────────
 function generateSessionId() {
   return Math.random().toString(36).slice(2, 10);
 }
 
-function buildWelcome() {
-  return `Welcome. We're here to help you see where you fit in building the future we want to live into.
+// ─── Off-road detection ───────────────────────────────────────────────────────
+// Called before engine.answer() for free-text inputs during structured phases
+function isOffRoad(input, sessionPhase) {
+  const lower = input.trim().toLowerCase();
+  const len   = input.trim().length;
 
-This will take about 5 minutes. I'll ask some quick questions to get a sense of your pattern, then we'll make sure it fits.
+  // During multiple-choice phases, detect non-answer inputs
+  const structuredPhases = [1, "1-fork"];
+  if (structuredPhases.includes(sessionPhase)) {
+    const hasLetter = /\b[a-g]\b/.test(lower);
+    // If longer than a brief letter response and doesn't contain a clear letter selection
+    if (!hasLetter && len > 15) return true;
+  }
 
-There are no wrong answers. Pick what feels most true in your actual life — not what you wish were true, or what sounds impressive.`;
+  // Detect questions
+  if (lower.includes("?") || lower.startsWith("what") || lower.startsWith("why") ||
+      lower.startsWith("how") || lower.startsWith("can you") || lower.startsWith("is this")) {
+    return true;
+  }
+
+  // Detect expressions of doubt or pushback
+  const doubtPhrases = [
+    "not sure", "don't understand", "confused", "doesn't make sense",
+    "none of these", "none of those", "don't fit", "not relevant",
+    "what does this mean", "what is this", "why are you asking"
+  ];
+  if (doubtPhrases.some(p => lower.includes(p))) return true;
+
+  return false;
 }
 
-function formatQuestion(question, acknowledgment) {
+// Classify off-road type for voice response selection
+function classifyOffRoad(input) {
+  const lower = input.toLowerCase();
+  if (lower.includes("?"))                           return "question";
+  if (lower.includes("none") || lower.includes("don't fit") || lower.includes("doesn't fit"))
+                                                     return "optionsDontFit";
+  if (lower.includes("not sure") || lower.includes("confused") || lower.includes("don't understand"))
+                                                     return "doubtAboutProcess";
+  if (lower.includes("all of") || lower.includes("multiple") || lower.includes("both"))
+                                                     return "claimsMultiple";
+  if (lower.includes("frustrat") || lower.includes("annoyed") || lower.includes("stupid"))
+                                                     return "frustration";
+  return "generic";
+}
+
+// Use Claude to respond conversationally to off-road input
+async function handleOffRoad(input, session) {
+  const offRoadType = classifyOffRoad(input);
+
+  // For known types, use template responses (fast, no API cost)
+  if (offRoadType === "doubtAboutProcess") return voice.OFF_ROAD.doubtAboutProcess;
+  if (offRoadType === "claimsMultiple")    return voice.OFF_ROAD.claimsMultiple;
+  if (offRoadType === "optionsDontFit")    return voice.OFF_ROAD.optionsDontFit;
+  if (offRoadType === "frustration")       return voice.OFF_ROAD.frustration;
+
+  // For genuine questions or generic off-road, use Claude
+  const context = `You are the Purpose Piece assessment guide. Current phase: ${session.phase}. Primary archetype signal so far: ${session.primaryArchetype || "not yet determined"}.
+
+The user has gone off-script with this input: "${input}"
+
+Respond in Zor-El voice: calm authority, architect-level composed, kind but firm, no therapy, no hype, no flattery. 2-3 sentences maximum. Then return them to the assessment naturally.`;
+
+  try {
+    const response = await anthropic.messages.create({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 200,
+      system: "You are the Purpose Piece assessment guide. Zor-El voice: calm, structural, certain, curious. Never therapeutic, never flattering.",
+      messages: [{ role: "user", content: context }]
+    });
+    return response.content[0].text;
+  } catch {
+    return voice.OFF_ROAD.generic(input);
+  }
+}
+
+// ─── Format engine responses into text ───────────────────────────────────────
+function formatQuestion(question, acknowledgmentKey) {
   const lines = [];
 
-  if (acknowledgment) {
-    lines.push(acknowledgment);
+  if (acknowledgmentKey && voice.ACKNOWLEDGMENTS[acknowledgmentKey]) {
+    lines.push(voice.ACKNOWLEDGMENTS[acknowledgmentKey]);
     lines.push("");
   }
 
@@ -38,12 +112,205 @@ function formatQuestion(question, acknowledgment) {
 
   if (question.inputType === "free_text") {
     lines.push("");
-    lines.push("(Just a sentence or two is fine.)");
+    lines.push("(A sentence or two is enough.)");
   }
 
   return lines.join("\n");
 }
 
+function formatDomainQuestion() {
+  return `One more thing — what area of collective work does this belong to?\n\nIs it more about people's inner development, social structures, nature and ecology, technology and tools, economics and resources, long-term preservation, or coordinating toward a shared future?`;
+}
+
+function formatSubdomainQuestion(domain, expressedBreadth) {
+  const menu = questions.SUBDOMAIN_MENUS[domain];
+  if (!menu) return null;
+
+  let text = "";
+  if (expressedBreadth) {
+    text += voice.ACKNOWLEDGMENTS.broadScopeAnswer + "\n\n";
+  }
+
+  text += menu.prompt + "\n\n";
+  menu.options.forEach((opt, idx) => {
+    text += `${String.fromCharCode(65 + idx)}) ${opt.text}\n\n`;
+  });
+
+  return text.trim();
+}
+
+function formatEngineResponse(engineResponse, session) {
+  const { type } = engineResponse;
+
+  // Standard question
+  if (type === "question") {
+    return {
+      text: formatQuestion(engineResponse.question, engineResponse.acknowledgment),
+      phase: engineResponse.phase,
+      inputMode: engineResponse.question.inputType === "multiple_choice" ? "buttons" : "text",
+      options: engineResponse.question.options || null
+    };
+  }
+
+  // Domain question
+  if (type === "domain_question") {
+    return { text: formatDomainQuestion(), phase: engineResponse.phase, inputMode: "text" };
+  }
+
+  // Subdomain question
+  if (type === "subdomain_question") {
+    const menu = questions.SUBDOMAIN_MENUS[engineResponse.domain];
+    return {
+      text: formatSubdomainQuestion(engineResponse.domain, engineResponse.expressedBreadth),
+      phase: engineResponse.phase,
+      inputMode: "buttons",
+      options: menu ? menu.options.map((opt, idx) => ({
+        id: String.fromCharCode(97 + idx),
+        text: opt.text,
+        archetype: null
+      })) : null
+    };
+  }
+
+  // Clarification
+  if (type === "clarification") {
+    return {
+      text: voice.CLARIFICATIONS[engineResponse.key] || "Please select one of the options.",
+      phase: session.phase,
+      inputMode: "text"
+    };
+  }
+
+  // Recognition step 1
+  if (type === "recognition_step_1") {
+    const desc = scoring.generateBehavioralDescription(
+      engineResponse.archetype,
+      null // no secondary until confirmed
+    );
+    const reframedNote = engineResponse.reframed
+      ? "Looking at this differently.\n\n"
+      : (voice.TRANSITIONS.recognitionOpen + "\n\n");
+
+    return {
+      text: reframedNote + voice.recognitionStep1(desc),
+      phase: engineResponse.phase,
+      inputMode: "text"
+    };
+  }
+
+  // Recognition gap (uncertain/aspirational)
+  if (type === "recognition_gap") {
+    const archName = voice.cap(engineResponse.archetype);
+    return {
+      text: voice.recognitionGap(archName),
+      phase: engineResponse.phase,
+      inputMode: "text"
+    };
+  }
+
+  // Recognition step 2
+  if (type === "recognition_step_2") {
+    const impact = scoring.generateWorldImpact(engineResponse.archetype);
+    return {
+      text: voice.recognitionStep2(impact),
+      phase: engineResponse.phase,
+      inputMode: "text"
+    };
+  }
+
+  // Correction request
+  if (type === "correction_request") {
+    const correctionText = voice.recognitionCorrection(engineResponse.attempt);
+    return {
+      text: correctionText || "Tell me what feels off.",
+      phase: engineResponse.phase,
+      inputMode: "text"
+    };
+  }
+
+  // Alternate archetype offer
+  if (type === "alternate_offer") {
+    return {
+      text: voice.recognitionAlternateOffer(engineResponse.primary, engineResponse.alternate),
+      phase: engineResponse.phase,
+      inputMode: "text"
+    };
+  }
+
+  // Honest close
+  if (type === "honest_close") {
+    return {
+      text: voice.recognitionHonestClose().replace("{primary}", voice.cap(engineResponse.primary)),
+      phase: engineResponse.phase,
+      inputMode: "text"
+    };
+  }
+
+  // Recognition step 3 — name the pattern + deliver profile immediately
+  if (type === "recognition_step_3") {
+    const essence = voice.getArchetypeEssenceLong(engineResponse.archetype);
+    const revealText = voice.archetypeReveal(
+      voice.cap(engineResponse.archetype),
+      engineResponse.secondary ? voice.cap(engineResponse.secondary) : null,
+      essence
+    );
+
+    // Deliver profile inline
+    const { profiles: profileLib, domainModifiers, scaleModifiers } = require("../lib/profiles");
+    const profile    = profileLib[engineResponse.archetype];
+    const domainMod  = domainModifiers[session.domain];
+    const scaleMod   = scaleModifiers[session.scale];
+
+    const profileText = voice.formatFullProfile({
+      archetype: engineResponse.archetype,
+      secondary: engineResponse.secondary,
+      domain:    session.domain,
+      scale:     session.scale,
+      profile,
+      domainModifier: domainMod,
+      scaleModifier:  scaleMod
+    });
+
+    session.status = "complete";
+
+    return {
+      text: revealText + "\n\n" + profileText,
+      phase: 4,
+      inputMode: "none",
+      complete: true
+    };
+  }
+
+  // Full profile (direct delivery path)
+  if (type === "full_profile") {
+    const profileText = voice.formatFullProfile({
+      archetype:     engineResponse.archetype,
+      secondary:     engineResponse.secondary,
+      domain:        engineResponse.domain,
+      scale:         engineResponse.scale,
+      profile:       engineResponse.profile,
+      domainModifier: engineResponse.domainModifier,
+      scaleModifier:  engineResponse.scaleModifier
+    });
+
+    session.status = "complete";
+
+    return {
+      text: profileText,
+      phase: 4,
+      inputMode: "none",
+      complete: true
+    };
+  }
+
+  return {
+    text: "Something went wrong. Please refresh and try again.",
+    phase: session.phase,
+    inputMode: "text"
+  };
+}
+
+// ─── Main handler ─────────────────────────────────────────────────────────────
 module.exports = async (req, res) => {
   res.setHeader("Access-Control-Allow-Credentials", true);
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -53,7 +320,6 @@ module.exports = async (req, res) => {
   if (req.method === "OPTIONS") { res.status(200).end(); return; }
 
   const { messages, sessionId: clientSessionId } = req.body || {};
-
   if (!messages || !Array.isArray(messages)) {
     return res.status(400).json({ error: "Messages array required" });
   }
@@ -65,15 +331,19 @@ module.exports = async (req, res) => {
     // New session
     if (!sessionId || !sessions.has(sessionId)) {
       sessionId = generateSessionId();
-      session = engine.createSession();
+      session   = engine.createSession();
       sessions.set(sessionId, session);
 
       const firstResponse = engine.start(session);
-      const firstQuestion = formatQuestion(firstResponse.question, null);
+      const formatted     = formatEngineResponse(firstResponse, session);
 
       return res.status(200).json({
-        message: `${buildWelcome()}\n\n${firstQuestion}`,
-        sessionId
+        message:   voice.WELCOME + "\n\n" + formatted.text,
+        sessionId,
+        phase:     formatted.phase,
+        phaseLabel: voice.getPhaseLabel(session.phase),
+        inputMode: formatted.inputMode,
+        options:   formatted.options || null
       });
     }
 
@@ -81,106 +351,41 @@ module.exports = async (req, res) => {
 
     if (session.status === "complete") {
       return res.status(200).json({
-        message: "Your Purpose Piece has been delivered. Refresh to start a new session.",
-        sessionId
+        message:   "Your Purpose Piece has been delivered. Refresh to start a new session.",
+        sessionId,
+        phase:     4,
+        inputMode: "none"
       });
     }
 
-    const userMessages = messages.filter(m => m.role === "user");
-    const latestUserMessage = userMessages[userMessages.length - 1]?.content || "";
+    const userMessages     = messages.filter(m => m.role === "user");
+    const latestInput      = userMessages[userMessages.length - 1]?.content || "";
 
-    const engineResponse = engine.answer(session, latestUserMessage);
-
-    // ── Regular multiple-choice question ──────────────────────────────────────
-    if (engineResponse.type === "question") {
+    // ── Off-road detection ────────────────────────────────────────────────────
+    if (isOffRoad(latestInput, session.phase)) {
+      const offRoadResponse = await handleOffRoad(latestInput, session);
       return res.status(200).json({
-        message: formatQuestion(engineResponse.question, engineResponse.acknowledgment),
-        sessionId
+        message:    offRoadResponse,
+        sessionId,
+        phase:      session.phase,
+        phaseLabel: voice.getPhaseLabel(session.phase),
+        inputMode:  "text",
+        isOffRoad:  true
       });
     }
 
-    // ── Plain text question (subdomain menu, domain clarification) ────────────
-    if (engineResponse.type === "question_text") {
-      let text = engineResponse.acknowledgment ? engineResponse.acknowledgment + "\n\n" : "";
-      text += engineResponse.text;
-      return res.status(200).json({ message: text, sessionId });
-    }
-
-    // ── Clarification (bad input) ─────────────────────────────────────────────
-    if (engineResponse.type === "clarification") {
-      return res.status(200).json({ message: engineResponse.message, sessionId });
-    }
-
-    // ── Recognition Step 1: Behavioral description ────────────────────────────
-    if (engineResponse.type === "recognition_step_1") {
-      let text = engineResponse.acknowledgment ? engineResponse.acknowledgment + "\n\n" : "";
-      text += engineResponse.behavioralDescription;
-      text += "\n\nDoes that feel like you — even if your life doesn't fully reflect it yet?";
-      return res.status(200).json({ message: text, sessionId });
-    }
-
-    // ── Recognition Gap: Person is aspirational, not yet fully living it ──────
-    if (engineResponse.type === "recognition_gap") {
-      const archName = engineResponse.archetype.charAt(0).toUpperCase() + engineResponse.archetype.slice(1);
-      const text = `That gap — between what you're built for and what you're currently living — that's worth naming. A lot of people find their Purpose Piece before they're fully inhabiting it. The pattern is real even when life hasn't caught up yet.\n\nWith that in mind: does the ${archName} pattern feel like something that's true about you at your core?`;
-      return res.status(200).json({ message: text, sessionId });
-    }
-
-    // ── Recognition Step 2: World impact ─────────────────────────────────────
-    if (engineResponse.type === "recognition_step_2") {
-      const text = engineResponse.worldImpact + "\n\nDoes that feel like the contribution you're here to make — even if you're still finding your way into it?";
-      return res.status(200).json({ message: text, sessionId });
-    }
-
-    // ── Recognition Step 3: Name the pattern + deliver profile immediately ────
-    if (engineResponse.type === "recognition_step_3") {
-      const { archetypeName, secondaryName } = engineResponse;
-
-      let nameText = `What keeps showing up in everything you've described is someone who ${getArchetypeEssence(archetypeName)}.`;
-      if (secondaryName) {
-        nameText += ` There's also a ${secondaryName} quality in how you operate.`;
-      }
-      nameText += `\n\nThe name for this pattern is: ${archetypeName}.\n\n`;
-
-      // Deliver profile immediately
-      session.phase = 4;
-      const profileResponse = engine.answer(session, "deliver");
-      const { profile, archetype, secondary, domain, scale } = profileResponse;
-
-      let profileText = `YOUR PURPOSE PIECE\n\n`;
-      profileText += `${archetype}`;
-      if (secondary) profileText += ` + ${secondary}`;
-      profileText += `\n${domain} · ${scale}\n\n`;
-      profileText += `${profile.description}\n\n`;
-
-      profileText += `WHAT YOU'RE BUILT FOR:\n`;
-      profile.signatureStrengths.forEach(s => { profileText += `· ${s}\n`; });
-      profileText += `\n`;
-
-      profileText += `WHERE YOU CAN LOSE THE THREAD:\n`;
-      profile.shadowPatterns.forEach(s => { profileText += `· ${s}\n`; });
-      profileText += `\n`;
-
-      profileText += `QUESTIONS TO COME BACK TO:\n`;
-      profile.realignmentCues.forEach(q => { profileText += `· ${q}\n`; });
-      profileText += `\n`;
-
-      profileText += `WHY THIS MATTERS:\n${profile.whyItMatters}\n\n`;
-      profileText += `─────\n\nThis is your Purpose Piece. Not a label — a pattern that's already in you. The question now is where it belongs in the work.`;
-
-      session.status = "complete";
-      return res.status(200).json({ message: nameText + profileText, sessionId });
-    }
-
-    // ── Correction needed ─────────────────────────────────────────────────────
-    if (engineResponse.type === "correction_needed") {
-      return res.status(200).json({ message: engineResponse.text, sessionId });
-    }
-
+    // ── Engine ────────────────────────────────────────────────────────────────
+    const engineResponse = engine.answer(session, latestInput);
+    const formatted      = formatEngineResponse(engineResponse, session);
 
     return res.status(200).json({
-      message: "Something unexpected happened. Please refresh and try again.",
-      sessionId
+      message:    formatted.text,
+      sessionId,
+      phase:      formatted.phase,
+      phaseLabel: voice.getPhaseLabel(formatted.phase || session.phase),
+      inputMode:  formatted.inputMode,
+      options:    formatted.options || null,
+      complete:   formatted.complete || false
     });
 
   } catch (error) {
@@ -188,15 +393,3 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: "Internal server error", details: error.message });
   }
 };
-
-function getArchetypeEssence(name) {
-  const essences = {
-    Steward:   "keeps things whole — who tends what exists, repairs what breaks, and maintains what others take for granted",
-    Maker:     "needs things to exist in the world before they feel real — who moves from concept to creation and values function over perfection",
-    Connector: "sees how people and ideas belong together — who weaves relationships and creates the conditions for collaboration to emerge",
-    Guardian:  "protects what matters — who recognises threats before others do and holds boundaries so that what's sacred can survive",
-    Explorer:  "ventures into unknown territory and brings back what's needed — who's most alive at the frontier of what's possible",
-    Sage:      "sees patterns across time and context — who holds complexity without simplifying it and offers perspective that helps others see clearly"
-  };
-  return essences[name] || "contributes in a distinctive way";
-}
