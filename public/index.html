@@ -167,16 +167,6 @@
             text-align: right;
         }
 
-        .message-affirmation {
-            background: rgba(232, 152, 66, 0.15);
-            align-self: center;
-            text-align: center;
-            font-style: italic;
-            color: #7B8C9E;
-            font-size: 0.95rem;
-            animation: fadeIn 0.5s ease-in;
-        }
-
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -464,9 +454,7 @@
                     content: data.message
                 });
                 
-                // Check if this is an affirmation
-                const isAffirmation = isAffirmationMessage(data.message);
-                addMessage(data.message, 'assistant', isAffirmation);
+                addMessage(data.message, 'assistant');
                 
                 // Re-enable input
                 document.getElementById('user-input').disabled = false;
@@ -480,31 +468,21 @@
             }
         }
 
-        function isAffirmationMessage(message) {
-            const affirmations = [
-                'Good. I\'m getting a clear sense',
-                'This is helpful',
-                'Almost there',
-                'I\'m seeing something'
-            ];
-            return affirmations.some(phrase => message.includes(phrase));
         }
 
-        function addMessage(text, sender, isAffirmation = false) {
+        function addMessage(text, sender) {
             const chatContainer = document.getElementById('chat-container');
             const messageDiv = document.createElement('div');
-            
-            if (isAffirmation) {
-                messageDiv.className = 'message message-affirmation';
-            } else {
-                messageDiv.className = `message message-${sender}`;
-            }
-            
+            messageDiv.className = `message message-${sender}`;
             messageDiv.textContent = text;
             chatContainer.appendChild(messageDiv);
-            
-            // Scroll to bottom
-            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            // Scroll so new message appears near top of viewport
+            setTimeout(() => {
+                const rect = messageDiv.getBoundingClientRect();
+                const offset = window.scrollY + rect.top - 80;
+                window.scrollTo({ top: offset, behavior: 'smooth' });
+            }, 50);
         }
 
         function updateProgress() {
