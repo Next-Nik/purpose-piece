@@ -338,7 +338,7 @@ module.exports = async (req, res) => {
       const formatted     = formatEngineResponse(firstResponse, session);
 
       return res.status(200).json({
-        message:   voice.WELCOME + "\n\n" + formatted.text,
+        message:   formatted.text,
         sessionId,
         phase:     formatted.phase,
         phaseLabel: voice.getPhaseLabel(session.phase),
