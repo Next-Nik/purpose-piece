@@ -103,12 +103,8 @@ function formatQuestion(question, acknowledgmentKey) {
 
   lines.push(question.text);
 
-  if (question.inputType === "multiple_choice" && question.options) {
-    lines.push("");
-    for (const opt of question.options) {
-      lines.push(`${opt.id.toUpperCase()}) ${opt.text}`);
-    }
-  }
+  // Options are rendered exclusively as buttons in the UI.
+  // Do NOT repeat them as text in the message body — that's the duplicate rendering bug.
 
   if (question.inputType === "free_text") {
     lines.push("");
@@ -148,7 +144,8 @@ function formatEngineResponse(engineResponse, session) {
       text: formatQuestion(engineResponse.question, engineResponse.acknowledgment),
       phase: engineResponse.phase,
       inputMode: engineResponse.question.inputType === "multiple_choice" ? "buttons" : "text",
-      options: engineResponse.question.options || null
+      options: engineResponse.question.options || null,
+      questionLabel: engineResponse.question.label || null
     };
   }
 
@@ -346,7 +343,8 @@ module.exports = async (req, res) => {
         phase:     formatted.phase,
         phaseLabel: voice.getPhaseLabel(session.phase),
         inputMode: formatted.inputMode,
-        options:   formatted.options || null
+        options:   formatted.options || null,
+        questionLabel: formatted.questionLabel || null
       });
     }
 
@@ -388,7 +386,8 @@ module.exports = async (req, res) => {
       phaseLabel: voice.getPhaseLabel(formatted.phase || session.phase),
       inputMode:  formatted.inputMode,
       options:    formatted.options || null,
-      complete:   formatted.complete || false
+      complete:   formatted.complete || false,
+      questionLabel: formatted.questionLabel || null
     });
 
   } catch (error) {
