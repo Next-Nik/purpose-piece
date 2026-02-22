@@ -77,23 +77,27 @@ const App = {
   },
 
   // Called by option button clicks and by direct text input
-  sendMessage(text) {
+  // suppressBubble: true when caller has already rendered the user message (e.g. button handler)
+  sendMessage(text, suppressBubble = false) {
     if (this.isWaiting) return;
     this.isWaiting = true;
 
     UI.clearInput();
     UI.disableInput();
 
-    // Show user bubble
     const chatContainer = document.getElementById("chat-container");
-    const userBubble    = UI.createUserMessage(text);
-    chatContainer.appendChild(userBubble);
+
+    // Show user bubble (skip if caller already rendered it)
+    if (!suppressBubble) {
+      const userBubble = UI.createUserMessage(text);
+      chatContainer.appendChild(userBubble);
+      UI.scrollToMessage(userBubble);
+    }
 
     // Show typing
     const typingEl = UI.createTypingIndicator();
     chatContainer.appendChild(typingEl);
     UI.showTyping();
-    UI.scrollToMessage(userBubble);
 
     // Build messages array (simple — just the latest user message)
     const messages = [{ role: "user", content: text }];
@@ -151,6 +155,18 @@ const App = {
 
     // Assistant message
     if (data.message) {
+      // Ritual threshold: section break + question header before Phase 1 questions
+      if (data.questionLabel) {
+        const hr = document.createElement("hr");
+        hr.className = "section-break";
+        chatContainer.appendChild(hr);
+
+        const header = document.createElement("div");
+        header.className = "question-header";
+        header.textContent = data.questionLabel;
+        chatContainer.appendChild(header);
+      }
+
       const msgEl = UI.createAssistantMessage(data.message);
       chatContainer.appendChild(msgEl);
       UI.scrollToMessage(msgEl);
@@ -160,8 +176,14 @@ const App = {
     if (data.inputMode === "buttons" && data.options && data.options.length > 0) {
       this.currentOptions = data.options;
       const buttonsEl = UI.createOptionButtons(data.options, (id, text) => {
+        // Show full option text in the chat bubble for context.
+        // Send only the letter to the engine — prevents false multi-letter detection.
         const displayText = `${id.toUpperCase()}) ${text}`;
-        this.sendMessage(displayText);
+        const chatContainer = document.getElementById("chat-container");
+        const userBubble = UI.createUserMessage(displayText);
+        chatContainer.appendChild(userBubble);
+        UI.scrollToMessage(userBubble);
+        this.sendMessage(id.toUpperCase(), true); // suppressBubble — display bubble already rendered above
       });
       chatContainer.appendChild(buttonsEl);
       UI.scrollToMessage(buttonsEl);
