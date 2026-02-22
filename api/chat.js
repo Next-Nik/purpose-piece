@@ -127,10 +127,10 @@ function formatSubdomainQuestion(domain, expressedBreadth) {
     text += voice.ACKNOWLEDGMENTS.broadScopeAnswer + "\n\n";
   }
 
-  text += menu.prompt + "\n\n";
-  menu.options.forEach((opt, idx) => {
-    text += `${String.fromCharCode(65 + idx)}) ${opt.text}\n\n`;
-  });
+  text += menu.prompt;
+
+  // Options are rendered exclusively as buttons in the UI.
+  // Do NOT repeat them as text in the message body — same duplicate rendering bug as Phase 1.
 
   return text.trim();
 }
@@ -178,127 +178,17 @@ function formatEngineResponse(engineResponse, session) {
     };
   }
 
-  // Recognition step 1
-  if (type === "recognition_step_1") {
-    const desc = scoring.generateBehavioralDescription(
-      engineResponse.archetype,
-      null // no secondary until confirmed
-    );
-    const reframedNote = engineResponse.reframed
-      ? "Looking at this differently.\n\n"
-      : (voice.TRANSITIONS.recognitionOpen + "\n\n");
-
+  // Phase 3 handoff — Phase 2 complete, pass structured context to Signal Reader agent
+  if (type === "phase3_handoff") {
     return {
-      text: reframedNote + voice.recognitionStep1(desc),
+      text: voice.PHASE3_TRANSITION,
       phase: engineResponse.phase,
-      inputMode: "text"
-    };
-  }
-
-  // Recognition gap (uncertain/aspirational)
-  if (type === "recognition_gap") {
-    const archName = voice.cap(engineResponse.archetype);
-    return {
-      text: voice.recognitionGap(archName),
-      phase: engineResponse.phase,
-      inputMode: "text"
-    };
-  }
-
-  // Recognition step 2
-  if (type === "recognition_step_2") {
-    const impact = scoring.generateWorldImpact(engineResponse.archetype);
-    return {
-      text: voice.recognitionStep2(impact),
-      phase: engineResponse.phase,
-      inputMode: "text"
-    };
-  }
-
-  // Correction request
-  if (type === "correction_request") {
-    const correctionText = voice.recognitionCorrection(engineResponse.attempt);
-    return {
-      text: correctionText || "Tell me what feels off.",
-      phase: engineResponse.phase,
-      inputMode: "text"
-    };
-  }
-
-  // Alternate archetype offer
-  if (type === "alternate_offer") {
-    return {
-      text: voice.recognitionAlternateOffer(engineResponse.primary, engineResponse.alternate),
-      phase: engineResponse.phase,
-      inputMode: "text"
-    };
-  }
-
-  // Honest close
-  if (type === "honest_close") {
-    return {
-      text: voice.recognitionHonestClose().replace("{primary}", voice.cap(engineResponse.primary)),
-      phase: engineResponse.phase,
-      inputMode: "text"
-    };
-  }
-
-  // Recognition step 3 — name the pattern + deliver profile immediately
-  if (type === "recognition_step_3") {
-    const essence = voice.getArchetypeEssenceLong(engineResponse.archetype);
-    const revealText = voice.archetypeReveal(
-      voice.cap(engineResponse.archetype),
-      engineResponse.secondary ? voice.cap(engineResponse.secondary) : null,
-      essence
-    );
-
-    // Deliver profile inline
-    const { profiles: profileLib, domainModifiers, scaleModifiers } = require("../lib/profiles");
-    const profile    = profileLib[engineResponse.archetype];
-    const domainMod  = domainModifiers[session.domain];
-    const scaleMod   = scaleModifiers[session.scale];
-
-    const profileText = voice.formatFullProfile({
-      archetype: engineResponse.archetype,
-      secondary: engineResponse.secondary,
-      domain:    session.domain,
-      scale:     session.scale,
-      profile,
-      domainModifier: domainMod,
-      scaleModifier:  scaleMod
-    });
-
-    session.status = "complete";
-
-    return {
-      text: revealText + "\n\n" + profileText,
-      phase: 4,
       inputMode: "none",
-      complete: true
+      handoff: engineResponse.handoff,
+      isHandoff: true
     };
   }
 
-  // Full profile (direct delivery path)
-  if (type === "full_profile") {
-    const profileText = voice.formatFullProfile({
-      archetype:     engineResponse.archetype,
-      secondary:     engineResponse.secondary,
-      domain:        engineResponse.domain,
-      scale:         engineResponse.scale,
-      profile:       engineResponse.profile,
-      domainModifier: engineResponse.domainModifier,
-      scaleModifier:  engineResponse.scaleModifier
-    });
-
-    session.status = "complete";
-
-    return {
-      text: profileText,
-      phase: 4,
-      inputMode: "none",
-      complete: true
-    };
-  }
 
   // Unknown engine response type — log it so we can catch new types that lack a formatter.
   // This turns a silent "Something went wrong" into a debuggable surface.
@@ -387,7 +277,9 @@ module.exports = async (req, res) => {
       inputMode:  formatted.inputMode,
       options:    formatted.options || null,
       complete:   formatted.complete || false,
-      questionLabel: formatted.questionLabel || null
+      questionLabel: formatted.questionLabel || null,
+      isHandoff:  formatted.isHandoff || false,
+      handoff:    formatted.handoff || null
     });
 
   } catch (error) {
