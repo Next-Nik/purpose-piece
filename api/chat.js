@@ -101,7 +101,7 @@ function formatQuestion(question, acknowledgmentKey) {
     lines.push("");
   }
 
-  lines.push(question.text);
+  lines.push(question.setup || question.text);
 
   // Options are rendered exclusively as buttons in the UI.
   // Do NOT repeat them as text in the message body — that's the duplicate rendering bug.
