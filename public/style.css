@@ -373,3 +373,19 @@ body {
   #welcome-screen { padding: 24px 20px; }
   .message-profile { padding: 20px 18px; }
 }
+
+/* ─── Ritual threshold — separates intro from first question ────────────────── */
+.section-break {
+  margin: 2.5rem 0;
+  border: none;
+  border-top: 1px solid #e5e5e5;
+}
+
+.question-header {
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  color: #1a1a1a;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.78rem;
+}
