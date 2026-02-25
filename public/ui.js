@@ -93,12 +93,11 @@ const UI = {
   PHASE_PROGRESS: {
     1:                  15,
     "1-tiebreaker":     20,
-    "1-fork":           20,
-    "2-behavior":       35,
-    "2-scale":          50,
-    "2-domain-needed":  60,
-    "2-subdomain":      70,
-    3:                  82,
+    "2-fork":           30,
+    "2-domain":         45,
+    "2-scale":          60,
+    "3-handoff":        75,
+    3:                  85,
     4:                  100
   },
 
