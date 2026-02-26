@@ -1,204 +1,358 @@
-// PURPOSE PIECE — API HANDLER
-// Receives input, detects off-road, calls engine, calls voice, returns response.
-// FILE NAMING: lib files use plain names — engine.js, voice.js (no version suffixes)
+// PURPOSE PIECE — REVELATION ENGINE
+// Architecture: Behavior → Tension → Mirror → Frame
+// No state machine. No scoring. No multiple choice.
+// Claude reads the person. Claude writes the mirror. Claude names the pattern.
 
 const Anthropic = require("@anthropic-ai/sdk");
-const engine    = require("../lib/engine");
-const voice     = require("../lib/voice");
-const questions = require("../lib/questions");
-const scoring   = require("../lib/scoring");
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 const sessions  = new Map();
 
-// ─── Session management ───────────────────────────────────────────────────────
-function generateSessionId() {
-  return Math.random().toString(36).slice(2, 10);
+// ─── Session factory ──────────────────────────────────────────────────────────
+function createSession() {
+  return {
+    id:            Math.random().toString(36).slice(2, 10),
+    phase:         "welcome",
+    questionIndex: 0,
+    probeCount:    0,
+    transcript:    [],
+    synthesis:     null,
+    status:        "active"
+  };
 }
 
-// ─── Off-road detection ───────────────────────────────────────────────────────
-// Called before engine.answer() for free-text inputs during structured phases
-function isOffRoad(input, sessionPhase) {
-  const lower = input.trim().toLowerCase();
-  const len   = input.trim().length;
-
-  // During multiple-choice phases, detect non-answer inputs
-  const structuredPhases = [1, "1-fork"];
-  if (structuredPhases.includes(sessionPhase)) {
-    const hasLetter = /\b[a-g]\b/.test(lower);
-    // If longer than a brief letter response and doesn't contain a clear letter selection
-    if (!hasLetter && len > 15) return true;
+// ─── The five questions ───────────────────────────────────────────────────────
+const QUESTIONS = [
+  {
+    label: "The Moment",
+    text: "Think of a recent moment where something around you was off — at work, in a community, at home, anywhere. Maybe you stepped in. Maybe you didn't. Maybe you're still not sure you did the right thing either way.\n\nWhat happened, and what did you do — or not do?"
+  },
+  {
+    label: "The Frustration",
+    text: "What's something you keep noticing in the world around you — in organisations, communities, systems, relationships — that frustrates you not because it affects you personally, but because it simply shouldn't be that way?\n\nBe specific. What is it exactly?"
+  },
+  {
+    label: "The Pressure",
+    text: "Describe a moment in the last year or two where you had to make a real decision with incomplete information and something genuinely at stake.\n\nWhat did you do — and what did you deliberately not do?"
+  },
+  {
+    label: "The Cost",
+    text: "This one is harder. Take your time.\n\nWhat does your particular way of moving through the world cost you? Not what you find difficult in general — what specifically does your instinct ask of you that others don't seem to pay?"
+  },
+  {
+    label: "The Obligation",
+    text: "What's something you haven't done yet that sits with you — not as a goal you're working toward, but as something that feels more like a debt?\n\nSomething that would produce guilt if it remained undone."
   }
+];
 
-  // Detect questions
-  if (lower.includes("?") || lower.startsWith("what") || lower.startsWith("why") ||
-      lower.startsWith("how") || lower.startsWith("can you") || lower.startsWith("is this")) {
-    return true;
+// Scripted probes per question
+const PROBES = [
+  [
+    "Give me one specific moment from that situation. Where were you, and what did you actually do first?",
+    "Even a small action counts. What was the very first thing you did — or consciously chose not to do?"
+  ],
+  [
+    "Can you name a specific instance where you saw this? Even a recent small example.",
+    "What does it look like in practice — what actually happens that shouldn't be happening?"
+  ],
+  [
+    "What were the actual stakes — what could have gone wrong? And what did you do in the first 24-48 hours?",
+    "Walk me through one decision you made. What information did you have, and what did you do with it?"
+  ],
+  [
+    "Think of a specific situation where your way of operating made something harder for you. What happened?",
+    "What do people around you not seem to pay — what's the thing you carry that others put down more easily?"
+  ],
+  [
+    "What makes this feel like a debt rather than a goal? Is there a person involved, or a moment you're aware of passing?",
+    "If it remained undone — what specifically would you feel guilty about?"
+  ]
+];
+
+// ─── Thin answer detection ────────────────────────────────────────────────────
+const GENERIC_DEFLECTORS = [
+  "it depends","not sure","i guess","maybe","hard to say",
+  "whatever","idk","don't know","no idea","not really",
+  "i don't know","nothing comes to mind","can't think"
+];
+
+const TIME_ANCHORS = [
+  "last week","yesterday","last month","last year","recently",
+  "in 2024","in 2023","a few weeks","a few months","this year",
+  "this week","today","ago","when i","after i","before i"
+];
+
+const ACTION_VERBS = [
+  "called","asked","built","avoided","stepped","said","told",
+  "decided","chose","left","stayed","went","made","helped",
+  "stopped","started","reached out","spoke","wrote","created",
+  "organized","refused","accepted","pushed","pulled","watched"
+];
+
+function isThin(answer, qi) {
+  const lower = answer.toLowerCase().trim();
+  const words = answer.trim().split(/\s+/).filter(Boolean);
+
+  const minWords = qi === 3 ? 15 : 20;
+  if (words.length < minWords) return true;
+
+  const deflectorCount = GENERIC_DEFLECTORS.filter(d => lower.includes(d)).length;
+  if (deflectorCount >= 2) return true;
+
+  if ([0, 1, 2].includes(qi)) {
+    const hasTime    = TIME_ANCHORS.some(t => lower.includes(t));
+    const hasAction  = ACTION_VERBS.some(v => lower.includes(v));
+    const hasSetting = /\b(work|office|home|family|friend|community|meeting|team|partner|colleague|school|hospital|city|neighbourhood|neighborhood)\b/.test(lower);
+    if (!hasTime && !hasAction && !hasSetting) return true;
   }
-
-  // Detect expressions of doubt or pushback
-  const doubtPhrases = [
-    "not sure", "don't understand", "confused", "doesn't make sense",
-    "none of these", "none of those", "don't fit", "not relevant",
-    "what does this mean", "what is this", "why are you asking"
-  ];
-  if (doubtPhrases.some(p => lower.includes(p))) return true;
 
   return false;
 }
 
-// Classify off-road type for voice response selection
-function classifyOffRoad(input) {
-  const lower = input.toLowerCase();
-  if (lower.includes("?"))                           return "question";
-  if (lower.includes("none") || lower.includes("don't fit") || lower.includes("doesn't fit"))
-                                                     return "optionsDontFit";
-  if (lower.includes("not sure") || lower.includes("confused") || lower.includes("don't understand"))
-                                                     return "doubtAboutProcess";
-  if (lower.includes("all of") || lower.includes("multiple") || lower.includes("both"))
-                                                     return "claimsMultiple";
-  if (lower.includes("frustrat") || lower.includes("annoyed") || lower.includes("stupid"))
-                                                     return "frustration";
-  return "generic";
-}
-
-// Use Claude to respond conversationally to off-road input
-async function handleOffRoad(input, session) {
-  const offRoadType = classifyOffRoad(input);
-
-  // For known types, use template responses (fast, no API cost)
-  if (offRoadType === "doubtAboutProcess") return voice.OFF_ROAD.doubtAboutProcess;
-  if (offRoadType === "claimsMultiple")    return voice.OFF_ROAD.claimsMultiple;
-  if (offRoadType === "optionsDontFit")    return voice.OFF_ROAD.optionsDontFit;
-  if (offRoadType === "frustration")       return voice.OFF_ROAD.frustration;
-
-  // For genuine questions or generic off-road, use Claude
-  const context = `You are the Purpose Piece assessment guide. Current phase: ${session.phase}. Primary archetype signal so far: ${session.primaryArchetype || "not yet determined"}.
-
-The user has gone off-script with this input: "${input}"
-
-Respond in Zor-El voice: calm authority, architect-level composed, kind but firm, no therapy, no hype, no flattery. 2-3 sentences maximum. Then return them to the assessment naturally.`;
-
+// ─── Claude signal check (escalation after 2 failed probes) ──────────────────
+async function claudeSignalCheck(question, answer) {
   try {
     const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model:      "claude-sonnet-4-20250514",
       max_tokens: 200,
-      system: "You are the Purpose Piece assessment guide. Zor-El voice: calm, structural, certain, curious. Never therapeutic, never flattering.",
-      messages: [{ role: "user", content: context }]
+      messages:   [{
+        role:    "user",
+        content: `Evaluate signal quality for a behavioural assessment answer.\n\nQuestion: "${question}"\nAnswer: "${answer}"\n\nReturn JSON only:\n{"has_signal": true or false, "missing": ["concrete_example","emotions","cost","stakes"], "one_probe_question": "single best follow-up"}`
+      }]
     });
-    return response.content[0].text;
+    const clean = response.content[0].text.trim().replace(/\`\`\`json|\`\`\`/g, "").trim();
+    return JSON.parse(clean);
   } catch {
-    return voice.OFF_ROAD.generic(input);
+    return { has_signal: true };
   }
 }
 
-// ─── Format engine responses into text ───────────────────────────────────────
-function formatQuestion(question, acknowledgmentKey) {
-  const lines = [];
+// ─── Phase 3 system prompt ────────────────────────────────────────────────────
+const PHASE3_SYSTEM = `You are the synthesis layer of Purpose Piece — a recognition engine designed to make someone's pattern of movement undeniable to them.
 
-  if (acknowledgmentKey && voice.ACKNOWLEDGMENTS[acknowledgmentKey]) {
-    lines.push(voice.ACKNOWLEDGMENTS[acknowledgmentKey]);
-    lines.push("");
+You have just received five answers from a person who has responded to five behavioural questions. Your job is not to categorise them. Not yet. Your job is to hold up a mirror so precise and specific that they feel — before any label arrives — that they have been genuinely studied.
+
+WHAT YOU ARE DOING:
+You are identifying the pattern that repeats across all five answers. Not the content of each answer — the movement underneath the content. The instinct that shows up regardless of context. The emotional logic that connects what they did in Q1 to what frustrated them in Q2 to how they moved under pressure in Q3 to what it costs them in Q4 to what sits unfinished in Q5.
+
+Your synthesis must feel like: "I have been watching you for a long time."
+Not like: "Based on your answers, you appear to be..."
+
+WHAT YOU ARE NOT DOING:
+You are not naming an archetype. Not yet. Not even implicitly.
+You are not praising them. Warmth is appropriate. Flattery is not.
+You are not diagnosing them. You are observing pattern.
+You are not summarising their answers back to them. Reflection is not repetition.
+
+STRUCTURE — three to four paragraphs. No headers. No bullet points. Flowing, precise prose.
+
+Paragraph 1 — The repeated instinct:
+What does this person do — or not do — when something requires attention? Describe the consistent movement in behavioural terms. Reference their actual situations without quoting them directly. You may echo one short phrase they used (3-6 words max) if it sharpens recognition — no more than once. Do not open with generic summarising language. Enter through something specific — a detail, a moment, a word that unlocks the pattern.
+
+Paragraph 2 — The emotional logic:
+Why do they move that way? What does the emotional signal in Q2 reveal about what they value? What does Q3 reveal about how they think under pressure? Connect instinct to motivation. If multiple competing patterns appear, acknowledge the tension rather than prematurely resolving it. Real people are often blended. That tension is not a problem — it is part of the pattern.
+
+Paragraph 3 — The cost and the tension:
+What does Q4 reveal about what this pattern asks of them? Name it precisely. Do not soften it. At least one sentence should name something the person may not be fully comfortable admitting. That discomfort is the "oh." If Q5 connects to the cost, bring it in here.
+
+Paragraph 4 — The throughline:
+Attempt to name the underlying throughline. If the pattern is clear, name it directly. If subtle or blended, articulate the tension rather than forcing profundity. Reach. Do not default to safety. Stay tethered to their evidence.
+
+THE RULES:
+- Never write "You are." Use "You tend to" / "When under pressure, you" / "What appears across everything you've described"
+- Never mention an archetype name. Not even as a hint.
+- Never mention domain or scale.
+- Never use "clearly" or "simply"
+- Avoid declarative identity language even if grammatically subtle
+- Avoid grandiose claims. Stay tethered to their evidence.
+- Avoid filler transitions. Every sentence must introduce new insight or deepen the pattern.
+- If an answer was thin or evasive — note what that reveals. Avoidance is data.
+- Tone: measured, calm, precise, unhurried.
+- Length: 250-350 words. Every sentence earns its place.
+
+THE TEST:
+Does this read like something that could have been written about anyone? If yes — go deeper.
+The emotional endpoint is not "that's accurate." It is "oh."
+
+OUTPUT — return JSON only, no other text:
+{
+  "synthesis_text": "250-350 word mirror",
+  "internal_signals": {
+    "signals_detected": {
+      "movement_style": "brief description",
+      "decision_bias": "brief description",
+      "primary_value": "brief description",
+      "stress_response": "brief description",
+      "cost_pattern": "brief description",
+      "avoidance_signal": "brief description or null",
+      "scale_pull": "brief description",
+      "relational_vector": "brief description"
+    },
+    "confidence": "strong / blended / thin / contradictory",
+    "confidence_notes": "1-2 sentences on signal quality"
   }
+}`;
 
-  lines.push(question.setup || question.text);
+async function runPhase3(transcript) {
+  const transcriptText = transcript.map((entry, i) => {
+    let text = `Q${i+1} — ${QUESTIONS[i].label}\nQuestion: ${QUESTIONS[i].text}\nAnswer: ${entry.answer}`;
+    if (entry.probes && entry.probes.length > 0) {
+      entry.probes.forEach(p => { text += `\nProbe: ${p.probe}\nResponse: ${p.response}`; });
+    }
+    if (entry.thin) text += `\n[Note: Answer remained thin after probing — treat evasion as signal.]`;
+    return text;
+  }).join("\n\n---\n\n");
 
-  // Options are rendered exclusively as buttons in the UI.
-  // Do NOT repeat them as text in the message body — that's the duplicate rendering bug.
+  const response = await anthropic.messages.create({
+    model:      "claude-sonnet-4-20250514",
+    max_tokens: 1000,
+    system:     PHASE3_SYSTEM,
+    messages:   [{ role: "user", content: `Here are the five answers:\n\n${transcriptText}` }]
+  });
 
-  if (question.inputType === "free_text") {
-    lines.push("");
-    lines.push("(A sentence or two is enough.)");
-  }
-
-  return lines.join("\n");
+  const clean = response.content[0].text.trim().replace(/\`\`\`json|\`\`\`/g, "").trim();
+  return JSON.parse(clean);
 }
 
-function formatDomainQuestion() {
-  return `One more thing — what area of collective work does this belong to?\n\nIs it more about people's inner development, social structures, nature and ecology, technology and tools, economics and resources, long-term preservation, or coordinating toward a shared future?`;
+// ─── Phase 4 system prompt ────────────────────────────────────────────────────
+const PHASE4_SYSTEM = `You are the framing layer of Purpose Piece. Phase 3 has delivered a precise behavioural mirror. The user has recognised themselves in it. Now name what was observed — and frame what that naming asks of them.
+
+This is not a reveal. It is a consequence.
+
+THE SEVEN ARCHETYPES:
+- STEWARD: Tends systems, ensures they remain whole. Maintains, repairs, sustains. Patient with operational work.
+- MAKER: Builds what doesn't exist. Concept to creation. Comfortable with iteration. Values function over perfection.
+- ARCHITECT: Designs the structural conditions that determine what can be built at all. Doesn't build the thing — designs the container the thing lives inside. When something keeps breaking, redesigns the conditions producing the break. Energised by making the system sound, not shipping the output.
+- CONNECTOR: Weaves relationships, creates networks. Sees who needs who. Facilitates without dominating.
+- GUARDIAN: Protects what matters, holds boundaries. Recognises threats early. Fierce protecting, gentle tending.
+- EXPLORER: Ventures into unknown territory, brings back what's needed. Comfortable with uncertainty.
+- SAGE: Holds wisdom, offers perspective that clarifies. Sees patterns across time. Values understanding over action.
+
+THE SEVEN DOMAINS:
+- HUMAN BEING: Personal development, consciousness, inner work, transformation.
+- SOCIETY: Governance, culture, community, social structures.
+- NATURE: Environment, ecology, planetary health, regeneration.
+- TECHNOLOGY: Tools, infrastructure, innovation, digital and physical systems.
+- FINANCE & ECONOMY: Resources, exchange, wealth, value creation and distribution.
+- LEGACY: Long-term thinking, intergenerational work, preservation, deep time.
+- VISION: Future imagination, possibility, coordination, collective direction.
+
+THE FOUR SCALES:
+- LOCAL: Neighbourhood, community level. Face-to-face. Immediate impact.
+- BIOREGIONAL: Watershed, region level. Multi-community. Ecological boundaries.
+- GLOBAL: International, planetary systems. Cross-border challenges.
+- CIVILISATIONAL: Intergenerational, species-level. 100+ year timelines.
+
+STRUCTURE:
+
+Section 1 — State the pattern (1 paragraph, 1-3 sentences):
+Restate the throughline from Phase 3 — sharper. Compression, not repetition. Do not open with the archetype name. Open with the pattern.
+
+Section 2 — Introduce the archetype (1 paragraph):
+"The pattern most aligned with this movement is [Archetype]."
+Explain what this archetype does in concrete behavioural terms — not what it is, what it does. Avoid mythic abstraction. If confidence is blended or contradictory — name primary and acknowledge secondary directly. Do not smooth over tension.
+
+Section 3 — Domain (1 paragraph):
+"The territory where this pattern most wants to operate is [Domain]."
+Derive from what they actually said. Justify with at least one reference to their specific lived example.
+
+Section 4 — Scale (1 paragraph):
+"The scale where this pattern is most coherent right now is [Scale]."
+Scale = coherence bandwidth, not ambition. Do not assume larger scale is more evolved. If there is tension between current and aspirational scale — name it. Do not resolve it.
+
+Section 5 — Responsibility (2-4 sentences):
+Name what this pattern asks of them. What does carrying this instinct require? What does it cost if left unexpressed? Include one line grounding responsibility in capacity: this pattern exists because something in them is built for it. That is not praise — it is why the responsibility is legitimate. Weight comes from precision, not length. Feel like: "Now that you know this — you can't unknow it."
+
+Section 6 — Actions:
+Introduce: "Here is what this looks like in practice."
+Three tiers — each specific to this person's context, not generic archetype actions:
+Light (this week): 30-60 minutes. No special resources. Start today.
+Medium (ongoing): A few hours, recurring. Builds over time.
+Deep (structural): Weeks to months. The thing their pattern is built for.
+
+Section 7 — Resources (3-5 items):
+Chosen for this specific person's pattern, tension, and texture — not a generic reading list.
+Each: title + author/source + one sentence explaining why it is specifically for them.
+At least one must address the tension or cost from Phase 3 — not just archetype strength.
+At least one must be immediately accessible today.
+Mix formats: books, essays, talks, organisations, people.
+
+THE RULES:
+- Never say "You are a [Archetype]." Say "The pattern most aligned with this is [Archetype]."
+- Never smooth over blended/contradictory signals. Name the tension.
+- Never present domain or scale as separate test results.
+- Never motivate. Responsibility carries weight, not energy.
+- Never produce generic actions or resources.
+- Avoid grandiose claims. Stay tethered to evidence.
+- Avoid declarative identity language.
+- Tone: measured, precise, calm. Phase 4 is not louder than Phase 3. It is clearer.
+
+TONAL TRANSITION:
+Phase 3: "I see you."
+Phase 4: "Now this matters."
+Not: "I see you — congratulations!"
+User finishes feeling located, not celebrated.
+
+OUTPUT — return JSON only, no other text:
+{
+  "pattern_restatement": "1 paragraph",
+  "archetype_frame": "1 paragraph",
+  "domain_frame": "1 paragraph",
+  "scale_frame": "1 paragraph",
+  "responsibility": "2-4 sentences",
+  "actions": {
+    "light": "specific action with brief context",
+    "medium": "specific action with brief context",
+    "deep": "specific action with brief context"
+  },
+  "resources": [
+    {"title": "Title — Author or Source", "why": "one sentence specific to this person"}
+  ]
+}`;
+
+async function runPhase4(transcript, synthesis) {
+  const transcriptText = transcript.map((entry, i) =>
+    `Q${i+1} — ${QUESTIONS[i].label}\nAnswer: ${entry.answer}${entry.thin ? " [thin/evasive]" : ""}`
+  ).join("\n\n");
+
+  const payload = `PHASE 3 SYNTHESIS:\n${synthesis.synthesis_text}\n\nINTERNAL SIGNALS:\n${JSON.stringify(synthesis.internal_signals, null, 2)}\n\nORIGINAL ANSWERS:\n${transcriptText}`;
+
+  const response = await anthropic.messages.create({
+    model:      "claude-sonnet-4-20250514",
+    max_tokens: 2000,
+    system:     PHASE4_SYSTEM,
+    messages:   [{ role: "user", content: payload }]
+  });
+
+  const clean = response.content[0].text.trim().replace(/\`\`\`json|\`\`\`/g, "").trim();
+  return JSON.parse(clean);
 }
 
-function formatSubdomainQuestion(domain, expressedBreadth) {
-  const menu = questions.SUBDOMAIN_MENUS[domain];
-  if (!menu) return null;
+// ─── Render Phase 4 as readable text ─────────────────────────────────────────
+function renderPhase4(p4) {
+  const resources = p4.resources.map(r => `${r.title}\n${r.why}`).join("\n\n");
 
-  let text = "";
-  if (expressedBreadth) {
-    text += voice.ACKNOWLEDGMENTS.broadScopeAnswer + "\n\n";
-  }
-
-  text += menu.prompt;
-
-  // Options are rendered exclusively as buttons in the UI.
-  // Do NOT repeat them as text in the message body — same duplicate rendering bug as Phase 1.
-
-  return text.trim();
+  return [
+    p4.pattern_restatement,
+    p4.archetype_frame,
+    p4.domain_frame,
+    p4.scale_frame,
+    p4.responsibility,
+    `Here is what this looks like in practice.\n\nThis week — ${p4.actions.light}\n\nOngoing — ${p4.actions.medium}\n\nStructural — ${p4.actions.deep}`,
+    `Worth exploring:\n\n${resources}`
+  ].join("\n\n---\n\n");
 }
 
-function formatEngineResponse(engineResponse, session) {
-  const { type } = engineResponse;
+// ─── Welcome ──────────────────────────────────────────────────────────────────
+const WELCOME = `Something is already true about how you move through the world.
 
-  // Standard question
-  if (type === "question") {
-    return {
-      text: formatQuestion(engineResponse.question, engineResponse.acknowledgment),
-      phase: engineResponse.phase,
-      inputMode: engineResponse.question.inputType === "multiple_choice" ? "buttons" : "text",
-      options: engineResponse.question.options || null,
-      questionLabel: engineResponse.question.label || null
-    };
-  }
+Not what you aspire to. Not what you think you should be. The actual pattern — the instinct that shows up before you decide to let it, the thing that frustrates you when others don't see it, the cost you pay without being asked to.
 
-  // Domain question
-  if (type === "domain_question") {
-    return { text: formatDomainQuestion(), phase: engineResponse.phase, inputMode: "text" };
-  }
+This isn't a quiz. There are no right answers. What you're about to do is describe your actual behaviour — specific moments, real decisions, genuine costs — and let the pattern speak for itself.
 
-  // Subdomain question
-  if (type === "subdomain_question") {
-    const menu = questions.SUBDOMAIN_MENUS[engineResponse.domain];
-    return {
-      text: formatSubdomainQuestion(engineResponse.domain, engineResponse.expressedBreadth),
-      phase: engineResponse.phase,
-      inputMode: "buttons",
-      options: menu ? menu.options.map((opt, idx) => ({
-        id: String.fromCharCode(97 + idx),
-        text: opt.text,
-        archetype: null
-      })) : null
-    };
-  }
+Five questions. Answer honestly, not impressively.
 
-  // Clarification
-  if (type === "clarification") {
-    return {
-      text: voice.CLARIFICATIONS[engineResponse.key] || "Please select one of the options.",
-      phase: session.phase,
-      inputMode: "text"
-    };
-  }
-
-  // Phase 3 handoff — Phase 2 complete, pass structured context to Signal Reader agent
-  if (type === "phase3_handoff") {
-    return {
-      text: voice.PHASE3_TRANSITION,
-      phase: engineResponse.phase,
-      inputMode: "text",
-      handoff: engineResponse.handoff,
-      isHandoff: true
-    };
-  }
-
-
-  // Unknown engine response type — log it so we can catch new types that lack a formatter.
-  // This turns a silent "Something went wrong" into a debuggable surface.
-  console.warn("formatEngineResponse: unhandled type:", type, JSON.stringify(engineResponse));
-  return {
-    text: `Unexpected response type: ${type || "undefined"}. Please refresh and try again.`,
-    phase: session.phase,
-    inputMode: "text"
-  };
-}
+Ready when you are.`;
 
 // ─── Main handler ─────────────────────────────────────────────────────────────
 module.exports = async (req, res) => {
@@ -218,23 +372,17 @@ module.exports = async (req, res) => {
     let sessionId = clientSessionId;
     let session;
 
-    // New session
+    // ── New session ───────────────────────────────────────────────────────────
     if (!sessionId || !sessions.has(sessionId)) {
-      sessionId = generateSessionId();
-      session   = engine.createSession();
+      session   = createSession();
+      sessionId = session.id;
       sessions.set(sessionId, session);
 
-      const firstResponse = engine.start(session);
-      const formatted     = formatEngineResponse(firstResponse, session);
-
       return res.status(200).json({
-        message:   formatted.text,
+        message:   WELCOME,
         sessionId,
-        phase:     formatted.phase,
-        phaseLabel: voice.getPhaseLabel(session.phase),
-        inputMode: formatted.inputMode,
-        options:   formatted.options || null,
-        questionLabel: formatted.questionLabel || null
+        phase:     "welcome",
+        inputMode: "text"
       });
     }
 
@@ -242,48 +390,158 @@ module.exports = async (req, res) => {
 
     if (session.status === "complete") {
       return res.status(200).json({
-        message:   "Your Purpose Piece has been delivered. Refresh to start a new session.",
+        message:   "Your Purpose Piece has been delivered. Refresh to begin again.",
         sessionId,
-        phase:     4,
+        phase:     "complete",
         inputMode: "none"
       });
     }
 
-    const userMessages     = messages.filter(m => m.role === "user");
-    const latestInput      = userMessages[userMessages.length - 1]?.content || "";
+    const userMessages = messages.filter(m => m.role === "user");
+    const latestInput  = userMessages[userMessages.length - 1]?.content?.trim() || "";
+    const qi           = session.questionIndex;
 
-    // ── Off-road detection ────────────────────────────────────────────────────
-    if (isOffRoad(latestInput, session.phase)) {
-      const offRoadResponse = await handleOffRoad(latestInput, session);
+    // ── Welcome → Q1 ─────────────────────────────────────────────────────────
+    if (session.phase === "welcome") {
+      session.phase = "questions";
       return res.status(200).json({
-        message:    offRoadResponse,
+        message:       `Question 1 of 5\n\n${QUESTIONS[0].text}`,
         sessionId,
-        phase:      session.phase,
-        phaseLabel: voice.getPhaseLabel(session.phase),
-        inputMode:  "text",
-        isOffRoad:  true
+        phase:         "questions",
+        phaseLabel:    "Behavioral Evidence",
+        questionIndex: 0,
+        inputMode:     "text"
       });
     }
 
-    // ── Engine ────────────────────────────────────────────────────────────────
-    const engineResponse = engine.answer(session, latestInput);
-    const formatted      = formatEngineResponse(engineResponse, session);
+    // ── Question phase ────────────────────────────────────────────────────────
+    if (session.phase === "questions") {
+      const entry = session.transcript[qi];
 
-    return res.status(200).json({
-      message:    formatted.text,
-      sessionId,
-      phase:      formatted.phase,
-      phaseLabel: voice.getPhaseLabel(formatted.phase || session.phase),
-      inputMode:  formatted.inputMode,
-      options:    formatted.options || null,
-      complete:   formatted.complete || false,
-      questionLabel: formatted.questionLabel || null,
-      isHandoff:  formatted.isHandoff || false,
-      handoff:    formatted.handoff || null
-    });
+      // No entry yet — first answer to this question
+      if (!entry) {
+        const thin = isThin(latestInput, qi);
+
+        if (!thin) {
+          // Good answer — store and advance
+          session.transcript.push({ question: QUESTIONS[qi].text, answer: latestInput, probes: [], thin: false });
+          session.probeCount = 0;
+          session.questionIndex++;
+
+          if (session.questionIndex >= 5) return await synthesiseAndFrame(session, sessionId, res);
+
+          return res.status(200).json({
+            message:       `Question ${session.questionIndex + 1} of 5\n\n${QUESTIONS[session.questionIndex].text}`,
+            sessionId,
+            phase:         "questions",
+            phaseLabel:    "Behavioral Evidence",
+            questionIndex: session.questionIndex,
+            inputMode:     "text"
+          });
+        }
+
+        // Thin — probe 1
+        session.transcript.push({ question: QUESTIONS[qi].text, answer: latestInput, probes: [], thin: false });
+        session.probeCount = 1;
+        return res.status(200).json({
+          message: PROBES[qi][0], sessionId, phase: "questions",
+          phaseLabel: "Behavioral Evidence", inputMode: "text", isProbe: true
+        });
+      }
+
+      // Responding to probe
+      entry.probes.push({ probe: PROBES[qi][session.probeCount - 1], response: latestInput });
+      const combined = entry.answer + " " + entry.probes.map(p => p.response).join(" ");
+      const thin     = isThin(combined, qi);
+
+      if (!thin || session.probeCount >= 2) {
+        // Accept — if max probes reached and still thin, escalate to Claude
+        if (session.probeCount >= 2 && thin) {
+          const check = await claudeSignalCheck(QUESTIONS[qi].text, combined);
+          entry.thin = !check.has_signal;
+        }
+
+        session.probeCount = 0;
+        session.questionIndex++;
+
+        if (session.questionIndex >= 5) return await synthesiseAndFrame(session, sessionId, res);
+
+        return res.status(200).json({
+          message:       `Question ${session.questionIndex + 1} of 5\n\n${QUESTIONS[session.questionIndex].text}`,
+          sessionId,
+          phase:         "questions",
+          phaseLabel:    "Behavioral Evidence",
+          questionIndex: session.questionIndex,
+          inputMode:     "text"
+        });
+      }
+
+      // Still thin — probe 2
+      session.probeCount = 2;
+      return res.status(200).json({
+        message: PROBES[qi][1], sessionId, phase: "questions",
+        phaseLabel: "Behavioral Evidence", inputMode: "text", isProbe: true
+      });
+    }
+
+    // ── Framing phase (Phase 4) ───────────────────────────────────────────────
+    if (session.phase === "framing") {
+      return await frameAndDeliver(session, sessionId, res);
+    }
+
+    return res.status(200).json({ message: "Something went wrong. Please refresh.", sessionId, inputMode: "text" });
 
   } catch (error) {
     console.error("API error:", error);
     return res.status(500).json({ error: "Internal server error", details: error.message });
   }
 };
+
+// ─── Synthesis → framing pipeline ────────────────────────────────────────────
+async function synthesiseAndFrame(session, sessionId, res) {
+  session.phase = "synthesising";
+
+  let synthesis;
+  try {
+    synthesis = await runPhase3(session.transcript);
+  } catch (e) {
+    console.error("Phase 3 error:", e);
+    return res.status(500).json({ error: "Synthesis failed", details: e.message });
+  }
+
+  session.synthesis = synthesis;
+  session.phase     = "framing";
+
+  // Deliver synthesis — UI auto-advances to Phase 4
+  return res.status(200).json({
+    message:     synthesis.synthesis_text,
+    sessionId,
+    phase:       "synthesis",
+    phaseLabel:  "Pattern Recognition",
+    inputMode:   "none",
+    autoAdvance: true,
+    advanceDelay: 6000  // 6 seconds to read before Phase 4 fires
+  });
+}
+
+async function frameAndDeliver(session, sessionId, res) {
+  let p4;
+  try {
+    p4 = await runPhase4(session.transcript, session.synthesis);
+  } catch (e) {
+    console.error("Phase 4 error:", e);
+    return res.status(500).json({ error: "Framing failed", details: e.message });
+  }
+
+  session.status = "complete";
+
+  return res.status(200).json({
+    message:    renderPhase4(p4),
+    sessionId,
+    phase:      "complete",
+    phaseLabel: "Your Purpose Piece",
+    inputMode:  "none",
+    complete:   true,
+    profile:    p4
+  });
+}
