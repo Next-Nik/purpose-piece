@@ -16,22 +16,30 @@ const App = {
   bindEvents() {
     const sendBtn = document.getElementById("send-btn");
     const input   = document.getElementById("user-input");
-    // Carousel — advance through slides, trigger assessment on last
+    // Carousel — arrow advances slides, dots show position, last slide swaps arrow for Begin
     let currentSlide = 0;
-    const track = document.getElementById("carousel-track");
-    const carouselBtns = document.querySelectorAll(".carousel-btn");
+    const totalSlides = 3;
+    const track  = document.getElementById("carousel-track");
+    const arrow  = document.getElementById("carousel-arrow");
+    const dots   = document.querySelectorAll(".carousel-dot");
 
-    carouselBtns.forEach((btn, idx) => {
-      const isLast = idx === carouselBtns.length - 1;
-      btn.addEventListener("click", () => {
-        if (isLast) {
-          this.startConversation();
-        } else {
-          currentSlide++;
-          track.style.transform = `translateX(-${currentSlide * 33.333}%)`;
-        }
-      });
-    });
+    const advanceCarousel = () => {
+      currentSlide++;
+      track.style.transform = `translateX(-${currentSlide * 33.333}%)`;
+
+      // Update dots
+      dots.forEach((d, i) => d.classList.toggle("active", i === currentSlide));
+
+      // On last slide: swap arrow for Begin text button
+      if (currentSlide === totalSlides - 1) {
+        arrow.outerHTML = `<button class="carousel-begin" id="carousel-arrow">Begin</button>`;
+        document.getElementById("carousel-arrow").addEventListener("click", () => this.startConversation());
+      }
+    };
+
+    if (arrow) {
+      arrow.addEventListener("click", advanceCarousel);
+    }
 
     if (sendBtn) {
       sendBtn.addEventListener("click", () => this.sendUserInput());
