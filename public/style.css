@@ -342,26 +342,67 @@ body {
 }
 
 .carousel-slide p:last-of-type {
-  margin-bottom: 28px;
+  margin-bottom: 12px;
 }
 
-.btn-primary {
+/* ─── Carousel nav ───────────────────────────────────────────────────────────── */
+.carousel-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 32px 28px;
+  border-top: 1px solid #f0f2f5;
+}
+
+.carousel-dots {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.carousel-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #dde3ea;
+  transition: background 0.3s ease, transform 0.3s ease;
+  display: inline-block;
+}
+
+.carousel-dot.active {
   background: #E89842;
-  color: #ffffff;
-  border: none;
-  border-radius: 10px;
-  padding: 14px 28px;
-  font-family: 'Work Sans', sans-serif;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s ease;
-  display: block;
-  width: 100%;
+  transform: scale(1.3);
 }
 
-.btn-primary:hover  { background: #d4882f; }
-.btn-primary:active { background: #c07820; }
+.carousel-arrow {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+  opacity: 0.85;
+}
+
+.carousel-arrow:hover  { transform: scale(1.12); opacity: 1; }
+.carousel-arrow:active { transform: scale(0.95); }
+
+.carousel-begin {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'Work Sans', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #E89842;
+  letter-spacing: 0.04em;
+  padding: 4px 0;
+  transition: opacity 0.15s ease;
+}
+
+.carousel-begin:hover { opacity: 0.75; }
 
 /* ─── Profile delivery ──────────────────────────────────────────────────────── */
 .message-profile {
