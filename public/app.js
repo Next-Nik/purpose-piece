@@ -16,11 +16,22 @@ const App = {
   bindEvents() {
     const sendBtn = document.getElementById("send-btn");
     const input   = document.getElementById("user-input");
-    const startBtn = document.getElementById("start-btn");
+    // Carousel — advance through slides, trigger assessment on last
+    let currentSlide = 0;
+    const track = document.getElementById("carousel-track");
+    const carouselBtns = document.querySelectorAll(".carousel-btn");
 
-    if (startBtn) {
-      startBtn.addEventListener("click", () => this.startConversation());
-    }
+    carouselBtns.forEach((btn, idx) => {
+      const isLast = idx === carouselBtns.length - 1;
+      btn.addEventListener("click", () => {
+        if (isLast) {
+          this.startConversation();
+        } else {
+          currentSlide++;
+          track.style.transform = `translateX(-${currentSlide * 33.333}%)`;
+        }
+      });
+    });
 
     if (sendBtn) {
       sendBtn.addEventListener("click", () => this.sendUserInput());
@@ -194,6 +205,20 @@ const App = {
       UI.setInputMode("none");
     } else {
       UI.setInputMode(data.inputMode || "text");
+    }
+
+    // Auto-advance: synthesis delivered → fire Phase 4 after a pause
+    if (data.autoAdvance) {
+      const delay = data.advanceDelay || 6000;
+      UI.setInputMode("none");
+      setTimeout(async () => {
+        try {
+          const p4data = await this.callAPI(this.messages);
+          this.handleAPIResponse(p4data);
+        } catch (e) {
+          console.error("Phase 4 auto-advance error:", e);
+        }
+      }, delay);
     }
   },
 
