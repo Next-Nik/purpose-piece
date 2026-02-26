@@ -171,10 +171,8 @@ const UI = {
   scrollToMessage(el) {
     if (!el) return;
     setTimeout(() => {
-      const rect   = el.getBoundingClientRect();
-      const offset = window.scrollY + rect.top - 80;
-      window.scrollTo({ top: offset, behavior: "smooth" });
-    }, 50);
+      el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }, 100);
   },
 
   scrollToBottom() {
