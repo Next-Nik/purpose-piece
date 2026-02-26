@@ -1,17 +1,13 @@
 // PURPOSE PIECE — REVELATION ENGINE
 // Architecture: Behavior → Tension → Mirror → Frame
-// No state machine. No scoring. No multiple choice.
-// Claude reads the person. Claude writes the mirror. Claude names the pattern.
+// Stateless: session object lives on the client, sent with every request.
 
 const Anthropic = require("@anthropic-ai/sdk");
-
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-const sessions  = new Map();
 
 // ─── Session factory ──────────────────────────────────────────────────────────
 function createSession() {
   return {
-    id:            Math.random().toString(36).slice(2, 10),
     phase:         "welcome",
     questionIndex: 0,
     probeCount:    0,
@@ -45,7 +41,7 @@ const QUESTIONS = [
   }
 ];
 
-// Scripted probes per question
+// ─── Scripted probes per question ────────────────────────────────────────────
 const PROBES = [
   [
     "Give me one specific moment from that situation. Where were you, and what did you actually do first?",
@@ -120,7 +116,7 @@ async function claudeSignalCheck(question, answer) {
         content: `Evaluate signal quality for a behavioural assessment answer.\n\nQuestion: "${question}"\nAnswer: "${answer}"\n\nReturn JSON only:\n{"has_signal": true or false, "missing": ["concrete_example","emotions","cost","stakes"], "one_probe_question": "single best follow-up"}`
       }]
     });
-    const clean = response.content[0].text.trim().replace(/\`\`\`json|\`\`\`/g, "").trim();
+    const clean = response.content[0].text.trim().replace(/```json|```/g, "").trim();
     return JSON.parse(clean);
   } catch {
     return { has_signal: true };
@@ -210,7 +206,7 @@ async function runPhase3(transcript) {
     messages:   [{ role: "user", content: `Here are the five answers:\n\n${transcriptText}` }]
   });
 
-  const clean = response.content[0].text.trim().replace(/\`\`\`json|\`\`\`/g, "").trim();
+  const clean = response.content[0].text.trim().replace(/```json|```/g, "").trim();
   return JSON.parse(clean);
 }
 
@@ -261,7 +257,7 @@ Section 4 — Scale (1 paragraph):
 Scale = coherence bandwidth, not ambition. Do not assume larger scale is more evolved. If there is tension between current and aspirational scale — name it. Do not resolve it.
 
 Section 5 — Responsibility (2-4 sentences):
-Name what this pattern asks of them. What does carrying this instinct require? What does it cost if left unexpressed? Include one line grounding responsibility in capacity: this pattern exists because something in them is built for it. That is not praise — it is why the responsibility is legitimate. Weight comes from precision, not length. Feel like: "Now that you know this — you can't unknow it."
+Name what this pattern asks of them. What does carrying this instinct require? What does it cost if left unexpressed? Include one line grounding responsibility in capacity: this pattern exists because something in them is built for it. That is not praise — it is why the responsibility is legitimate.
 
 Section 6 — Actions:
 Introduce: "Here is what this looks like in practice."
@@ -280,17 +276,14 @@ Mix formats: books, essays, talks, organisations, people.
 THE RULES:
 - Never say "You are a [Archetype]." Say "The pattern most aligned with this is [Archetype]."
 - Never smooth over blended/contradictory signals. Name the tension.
-- Never present domain or scale as separate test results.
 - Never motivate. Responsibility carries weight, not energy.
 - Never produce generic actions or resources.
 - Avoid grandiose claims. Stay tethered to evidence.
-- Avoid declarative identity language.
 - Tone: measured, precise, calm. Phase 4 is not louder than Phase 3. It is clearer.
 
 TONAL TRANSITION:
 Phase 3: "I see you."
 Phase 4: "Now this matters."
-Not: "I see you — congratulations!"
 User finishes feeling located, not celebrated.
 
 OUTPUT — return JSON only, no other text:
@@ -324,7 +317,7 @@ async function runPhase4(transcript, synthesis) {
     messages:   [{ role: "user", content: payload }]
   });
 
-  const clean = response.content[0].text.trim().replace(/\`\`\`json|\`\`\`/g, "").trim();
+  const clean = response.content[0].text.trim().replace(/```json|```/g, "").trim();
   return JSON.parse(clean);
 }
 
@@ -343,7 +336,7 @@ function renderPhase4(p4) {
   ].join("\n\n---\n\n");
 }
 
-// ─── Welcome ──────────────────────────────────────────────────────────────────
+// ─── Welcome message ──────────────────────────────────────────────────────────
 const WELCOME = `Something is already true about how you move through the world.
 
 Not what you aspire to. Not what you think you should be. The actual pattern — the instinct that shows up before you decide to let it, the thing that frustrates you when others don't see it, the cost you pay without being asked to.
@@ -363,35 +356,31 @@ module.exports = async (req, res) => {
 
   if (req.method === "OPTIONS") { res.status(200).end(); return; }
 
-  const { messages, sessionId: clientSessionId } = req.body || {};
+  // ── Parse body ──────────────────────────────────────────────────────────────
+  const { messages, session: clientSession } = req.body || {};
   if (!messages || !Array.isArray(messages)) {
     return res.status(400).json({ error: "Messages array required" });
   }
 
   try {
-    let sessionId = clientSessionId;
-    let session;
+    // ── New session (no session sent, or first call) ──────────────────────────
+    let session = clientSession || null;
 
-    // ── New session ───────────────────────────────────────────────────────────
-    if (!sessionId || !sessions.has(sessionId)) {
-      session   = createSession();
-      sessionId = session.id;
-      sessions.set(sessionId, session);
-
+    if (!session || session.status === undefined) {
+      session = createSession();
       return res.status(200).json({
         message:   WELCOME,
-        sessionId,
+        session,
         phase:     "welcome",
         inputMode: "text"
       });
     }
 
-    session = sessions.get(sessionId);
-
+    // ── Complete ──────────────────────────────────────────────────────────────
     if (session.status === "complete") {
       return res.status(200).json({
         message:   "Your Purpose Piece has been delivered. Refresh to begin again.",
-        sessionId,
+        session,
         phase:     "complete",
         inputMode: "none"
       });
@@ -406,9 +395,9 @@ module.exports = async (req, res) => {
       session.phase = "questions";
       return res.status(200).json({
         message:       `Question 1 of 5\n\n${QUESTIONS[0].text}`,
-        sessionId,
+        session,
         phase:         "questions",
-        phaseLabel:    "Behavioral Evidence",
+        phaseLabel:    "Behavioural Evidence",
         questionIndex: 0,
         inputMode:     "text"
       });
@@ -423,18 +412,17 @@ module.exports = async (req, res) => {
         const thin = isThin(latestInput, qi);
 
         if (!thin) {
-          // Good answer — store and advance
           session.transcript.push({ question: QUESTIONS[qi].text, answer: latestInput, probes: [], thin: false });
           session.probeCount = 0;
           session.questionIndex++;
 
-          if (session.questionIndex >= 5) return await synthesiseAndFrame(session, sessionId, res);
+          if (session.questionIndex >= 5) return await synthesiseAndFrame(session, res);
 
           return res.status(200).json({
             message:       `Question ${session.questionIndex + 1} of 5\n\n${QUESTIONS[session.questionIndex].text}`,
-            sessionId,
+            session,
             phase:         "questions",
-            phaseLabel:    "Behavioral Evidence",
+            phaseLabel:    "Behavioural Evidence",
             questionIndex: session.questionIndex,
             inputMode:     "text"
           });
@@ -444,18 +432,17 @@ module.exports = async (req, res) => {
         session.transcript.push({ question: QUESTIONS[qi].text, answer: latestInput, probes: [], thin: false });
         session.probeCount = 1;
         return res.status(200).json({
-          message: PROBES[qi][0], sessionId, phase: "questions",
-          phaseLabel: "Behavioral Evidence", inputMode: "text", isProbe: true
+          message: PROBES[qi][0], session, phase: "questions",
+          phaseLabel: "Behavioural Evidence", inputMode: "text", isProbe: true
         });
       }
 
-      // Responding to probe
+      // Responding to a probe
       entry.probes.push({ probe: PROBES[qi][session.probeCount - 1], response: latestInput });
       const combined = entry.answer + " " + entry.probes.map(p => p.response).join(" ");
       const thin     = isThin(combined, qi);
 
       if (!thin || session.probeCount >= 2) {
-        // Accept — if max probes reached and still thin, escalate to Claude
         if (session.probeCount >= 2 && thin) {
           const check = await claudeSignalCheck(QUESTIONS[qi].text, combined);
           entry.thin = !check.has_signal;
@@ -464,13 +451,13 @@ module.exports = async (req, res) => {
         session.probeCount = 0;
         session.questionIndex++;
 
-        if (session.questionIndex >= 5) return await synthesiseAndFrame(session, sessionId, res);
+        if (session.questionIndex >= 5) return await synthesiseAndFrame(session, res);
 
         return res.status(200).json({
           message:       `Question ${session.questionIndex + 1} of 5\n\n${QUESTIONS[session.questionIndex].text}`,
-          sessionId,
+          session,
           phase:         "questions",
-          phaseLabel:    "Behavioral Evidence",
+          phaseLabel:    "Behavioural Evidence",
           questionIndex: session.questionIndex,
           inputMode:     "text"
         });
@@ -479,17 +466,17 @@ module.exports = async (req, res) => {
       // Still thin — probe 2
       session.probeCount = 2;
       return res.status(200).json({
-        message: PROBES[qi][1], sessionId, phase: "questions",
-        phaseLabel: "Behavioral Evidence", inputMode: "text", isProbe: true
+        message: PROBES[qi][1], session, phase: "questions",
+        phaseLabel: "Behavioural Evidence", inputMode: "text", isProbe: true
       });
     }
 
     // ── Framing phase (Phase 4) ───────────────────────────────────────────────
     if (session.phase === "framing") {
-      return await frameAndDeliver(session, sessionId, res);
+      return await frameAndDeliver(session, res);
     }
 
-    return res.status(200).json({ message: "Something went wrong. Please refresh.", sessionId, inputMode: "text" });
+    return res.status(200).json({ message: "Something went wrong. Please refresh.", session, inputMode: "text" });
 
   } catch (error) {
     console.error("API error:", error);
@@ -498,7 +485,7 @@ module.exports = async (req, res) => {
 };
 
 // ─── Synthesis → framing pipeline ────────────────────────────────────────────
-async function synthesiseAndFrame(session, sessionId, res) {
+async function synthesiseAndFrame(session, res) {
   session.phase = "synthesising";
 
   let synthesis;
@@ -512,19 +499,18 @@ async function synthesiseAndFrame(session, sessionId, res) {
   session.synthesis = synthesis;
   session.phase     = "framing";
 
-  // Deliver synthesis — UI auto-advances to Phase 4
   return res.status(200).json({
-    message:     synthesis.synthesis_text,
-    sessionId,
-    phase:       "synthesis",
-    phaseLabel:  "Pattern Recognition",
-    inputMode:   "none",
-    autoAdvance: true,
-    advanceDelay: 6000  // 6 seconds to read before Phase 4 fires
+    message:      synthesis.synthesis_text,
+    session,
+    phase:        "synthesis",
+    phaseLabel:   "Pattern Recognition",
+    inputMode:    "none",
+    autoAdvance:  true,
+    advanceDelay: 6000
   });
 }
 
-async function frameAndDeliver(session, sessionId, res) {
+async function frameAndDeliver(session, res) {
   let p4;
   try {
     p4 = await runPhase4(session.transcript, session.synthesis);
@@ -537,7 +523,7 @@ async function frameAndDeliver(session, sessionId, res) {
 
   return res.status(200).json({
     message:    renderPhase4(p4),
-    sessionId,
+    session,
     phase:      "complete",
     phaseLabel: "Your Purpose Piece",
     inputMode:  "none",
