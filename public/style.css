@@ -314,22 +314,34 @@ body {
   cursor: not-allowed;
 }
 
-/* ─── Welcome screen ────────────────────────────────────────────────────────── */
+/* ─── Welcome carousel ───────────────────────────────────────────────────────── */
 #welcome-screen {
   background: #ffffff;
   border: 1px solid #e8edf2;
   border-radius: 16px;
-  padding: 36px 32px;
-  text-align: left;
+  overflow: hidden;
   line-height: 1.7;
 }
 
-#welcome-screen p {
+.carousel-track {
+  display: flex;
+  width: 300%;
+  transition: transform 0.5s cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+.carousel-slide {
+  width: 33.333%;
+  padding: 36px 32px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.carousel-slide p {
   margin-bottom: 16px;
   color: #2c3e50;
 }
 
-#welcome-screen p:last-of-type {
+.carousel-slide p:last-of-type {
   margin-bottom: 28px;
 }
 
