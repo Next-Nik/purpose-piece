@@ -3,7 +3,7 @@
 // Depends on ui.js (loaded first via index.html).
 
 const App = {
-  sessionId: null,
+  session: null,
   currentPhase: null,
   currentOptions: null,  // current button options if in button mode
   isWaiting: false,      // prevent double-sends
@@ -137,7 +137,7 @@ const App = {
 
   // ─── API call ───────────────────────────────────────────────────────────────
   async callAPI(messages) {
-    const body = { messages, sessionId: this.sessionId };
+    const body = { messages, session: this.session };
 
     const response = await fetch("/api/chat", {
       method:  "POST",
@@ -154,7 +154,7 @@ const App = {
 
   // ─── Handle API response ────────────────────────────────────────────────────
   handleAPIResponse(data, isFirst = false) {
-    if (data.sessionId) this.sessionId = data.sessionId;
+    if (data.session) this.session = data.session;
 
     const chatContainer = document.getElementById("chat-container");
 
@@ -188,7 +188,7 @@ const App = {
 
       const msgEl = UI.createAssistantMessage(data.message);
       chatContainer.appendChild(msgEl);
-      UI.scrollToMessage(msgEl);
+      setTimeout(() => msgEl.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
     }
 
     // Option buttons (if inputMode is "buttons" and options provided)
@@ -206,6 +206,21 @@ const App = {
       });
       chatContainer.appendChild(buttonsEl);
       UI.scrollToMessage(buttonsEl);
+    }
+
+    // Welcome phase: show "I'm ready" button instead of text input
+    if (data.phase === "welcome") {
+      UI.setInputMode("none");
+      const readyBtn = document.createElement("button");
+      readyBtn.className = "btn-ready";
+      readyBtn.textContent = "I'm ready";
+      readyBtn.addEventListener("click", () => {
+        readyBtn.remove();
+        this.sendMessage("I'm ready", false);
+      });
+      chatContainer.appendChild(readyBtn);
+      setTimeout(() => readyBtn.scrollIntoView({ behavior: "smooth", block: "nearest" }), 100);
+      return;
     }
 
     // Set input mode
