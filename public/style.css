@@ -12,7 +12,11 @@
 
 body {
   font-family: 'Work Sans', sans-serif;
-  background: linear-gradient(to bottom, #f5f5f5 0%, #e8e8e8 100%);
+  background-color: #f0efec;
+  background-image: url('/background.png');
+  background-size: cover;
+  background-position: center top;
+  background-attachment: fixed;
   min-height: 100vh;
   color: #2c3e50;
   position: relative;
@@ -247,7 +251,7 @@ body {
   bottom: 0;
   left: 0;
   right: 0;
-  background: rgba(245, 245, 245, 0.95);
+  background: rgba(240, 239, 236, 0.96);
   backdrop-filter: blur(8px);
   border-top: 1px solid #dde3ea;
   padding: 16px 20px;
@@ -317,10 +321,11 @@ body {
 /* ─── Welcome carousel ───────────────────────────────────────────────────────── */
 #welcome-screen {
   background: #ffffff;
-  border: 1px solid #e8edf2;
+  border: 1px solid #d8cfc4;
   border-radius: 16px;
   overflow: hidden;
   line-height: 1.7;
+  box-shadow: 0 4px 24px rgba(40, 30, 20, 0.13), 0 1px 4px rgba(40, 30, 20, 0.07);
 }
 
 .carousel-track {
@@ -404,6 +409,26 @@ body {
 
 .carousel-begin:hover { opacity: 0.75; }
 
+/* ─── I'm ready button (welcome phase) ──────────────────────────────────────── */
+.btn-ready {
+  align-self: flex-start;
+  background: #E89842;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 13px 28px;
+  font-family: 'Work Sans', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  margin-top: 4px;
+  animation: fadeIn 0.3s ease-in;
+}
+
+.btn-ready:hover  { background: #d4882f; }
+.btn-ready:active { background: #c07820; }
+
 /* ─── Profile delivery ──────────────────────────────────────────────────────── */
 .message-profile {
   max-width: 100%;
@@ -423,7 +448,7 @@ body {
   .header h1 { font-size: 1.6rem; }
   .message { max-width: 92%; font-size: 0.95rem; }
   .option-buttons { max-width: 100%; }
-  #welcome-screen { padding: 24px 20px; }
+  .carousel-slide { padding: 24px 20px; }
   .message-profile { padding: 20px 18px; }
 }
 
