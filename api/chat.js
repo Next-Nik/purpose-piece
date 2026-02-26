@@ -116,11 +116,25 @@ async function claudeSignalCheck(question, answer) {
         content: `Evaluate signal quality for a behavioural assessment answer.\n\nQuestion: "${question}"\nAnswer: "${answer}"\n\nReturn JSON only:\n{"has_signal": true or false, "missing": ["concrete_example","emotions","cost","stakes"], "one_probe_question": "single best follow-up"}`
       }]
     });
-    const clean = response.content[0].text.trim().replace(/```json|```/g, "").trim();
-    return JSON.parse(clean);
+    return extractJSON(response.content[0].text);
   } catch {
     return { has_signal: true };
   }
+}
+
+// ─── Robust JSON extractor ───────────────────────────────────────────────────
+function extractJSON(text) {
+  // Strip markdown fences
+  let clean = text.trim().replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/i, "").trim();
+  // Try direct parse first
+  try { return JSON.parse(clean); } catch {}
+  // Find first { to last } 
+  const start = clean.indexOf("{");
+  const end   = clean.lastIndexOf("}");
+  if (start !== -1 && end !== -1) {
+    try { return JSON.parse(clean.slice(start, end + 1)); } catch {}
+  }
+  throw new Error("Could not extract JSON from response: " + text.slice(0, 200));
 }
 
 // ─── Phase 3 system prompt ────────────────────────────────────────────────────
@@ -206,8 +220,7 @@ async function runPhase3(transcript) {
     messages:   [{ role: "user", content: `Here are the five answers:\n\n${transcriptText}` }]
   });
 
-  const clean = response.content[0].text.trim().replace(/```json|```/g, "").trim();
-  return JSON.parse(clean);
+  return extractJSON(response.content[0].text);
 }
 
 // ─── Phase 4 system prompt ────────────────────────────────────────────────────
@@ -317,8 +330,7 @@ async function runPhase4(transcript, synthesis) {
     messages:   [{ role: "user", content: payload }]
   });
 
-  const clean = response.content[0].text.trim().replace(/```json|```/g, "").trim();
-  return JSON.parse(clean);
+  return extractJSON(response.content[0].text);
 }
 
 // ─── Render Phase 4 as readable text ─────────────────────────────────────────
