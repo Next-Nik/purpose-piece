@@ -213,7 +213,7 @@ const App = {
       UI.setInputMode("none");
       setTimeout(async () => {
         try {
-          const p4data = await this.callAPI(this.messages);
+          const p4data = await this.callAPI([]);
           this.handleAPIResponse(p4data);
         } catch (e) {
           console.error("Phase 4 auto-advance error:", e);
