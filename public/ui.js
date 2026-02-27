@@ -8,22 +8,22 @@ const UI = {
   createAssistantMessage(text, isSynthesis = false) {
     const div = document.createElement("div");
 
-    // Profile delivery: HTML string from renderPhase4 — use innerHTML
+    // Profile delivery: HTML from renderPhase4
     if (text.includes("profile-card")) {
       div.className = "message message-profile";
       div.innerHTML = text;
       return div;
     }
 
-    // Phase 3 synthesis mirror — warm distinct styling
-    if (isSynthesis) {
-      div.className = "message message-synthesis";
-      div.textContent = text;
+    // Synthesis mirror: HTML with headed card
+    if (text.includes("synthesis-card")) {
+      div.className = "message message-profile";
+      div.innerHTML = text;
       return div;
     }
 
-    // All other messages: plain text — use textContent (XSS safe)
-    div.className = "message message-assistant";
+    // All Signal Reader messages — warm parchment style
+    div.className = "message message-synthesis";
     div.textContent = text;
     return div;
   },
