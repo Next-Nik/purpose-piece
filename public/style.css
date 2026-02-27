@@ -70,8 +70,8 @@ body {
 }
 
 .progress-bar {
-  height: 3px;
-  background: #dde3ea;
+  height: 2px;
+  background: rgba(232, 152, 66, 0.2);
   border-radius: 2px;
   overflow: hidden;
 }
@@ -85,12 +85,13 @@ body {
 }
 
 .progress-label {
-  font-size: 0.75rem;
-  color: #7B8C9E;
+  font-size: 0.68rem;
+  color: #E89842;
   margin-top: 6px;
-  font-weight: 500;
-  letter-spacing: 0.05em;
+  font-weight: 600;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
+  opacity: 0.8;
 }
 
 /* ─── Chat area ─────────────────────────────────────────────────────────────── */
@@ -167,17 +168,17 @@ body {
   white-space: nowrap;
 }
 
-/* ─── Synthesis bubble (Phase 3 mirror) ─────────────────────────────────────── */
+/* ─── Synthesis bubble — all Signal Reader messages ──────────────────────────── */
 .message-synthesis {
-  max-width: 92%;
-  padding: 22px 24px;
+  max-width: 88%;
+  padding: 20px 24px;
   border-radius: 12px;
   border-bottom-left-radius: 4px;
   background: #f5f0e8;
   border: 1px solid #e0d5c0;
   align-self: flex-start;
   color: #1a2a3a;
-  font-size: 1.08rem;
+  font-size: 1.05rem;
   font-weight: 400;
   line-height: 1.85;
   white-space: pre-wrap;
@@ -372,12 +373,13 @@ body {
 
 /* Slide section label */
 .slide-label {
+  display: block;
   font-size: 0.72rem !important;
   font-weight: 700 !important;
   letter-spacing: 0.12em !important;
   text-transform: uppercase !important;
   color: #E89842 !important;
-  margin-bottom: 20px !important;
+  margin-bottom: 22px !important;
   line-height: 1.2 !important;
 }
 
@@ -475,6 +477,35 @@ body {
 .btn-ready:hover  { background: #d4882f; }
 .btn-ready:active { background: #c07820; }
 
+
+/* ─── Synthesis card (headed mirror) ────────────────────────────────────────── */
+.synthesis-card {
+  background: #f5f0e8;
+  border: 1px solid #e0d5c0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+}
+
+.synthesis-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #E89842;
+  padding: 20px 28px 0;
+  margin-bottom: 14px;
+}
+
+.synthesis-body {
+  padding: 0 28px 28px;
+  color: #1a2a3a;
+  font-size: 1.08rem;
+  font-weight: 400;
+  line-height: 1.9;
+  white-space: pre-wrap;
+}
+
 /* ─── Profile delivery ──────────────────────────────────────────────────────── */
 .message-profile {
   max-width: 100%;
@@ -559,20 +590,29 @@ body {
 .profile-summary p:last-child { margin-bottom: 0; }
 
 .profile-section-label {
-  font-size: 1.1rem;
+  font-size: 1.0rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #E89842;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
+}
+
+.profile-section:last-child .profile-section-label {
+  font-size: 1.0rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
 }
 
 .profile-section {
-  padding: 18px 32px;
+  padding: 16px 32px;
   border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
-.profile-section:last-child { border-bottom: none; }
+.profile-section:last-child {
+  border-bottom: none;
+  padding-bottom: 32px;
+}
 
 .profile-section p {
   color: #c8d8e8;
@@ -623,13 +663,28 @@ body {
   font-weight: 600;
   color: #dde6ef;
   font-size: 0.95rem;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
+  display: inline-block;
+  border-bottom: 1px solid #E89842;
+  padding-bottom: 2px;
 }
 
 .profile-resource-why {
   font-size: 0.9rem;
   color: #8fa8be;
   line-height: 1.65;
+}
+
+
+/* ─── Profile closing line ───────────────────────────────────────────────────── */
+.profile-closing {
+  padding: 24px 32px 32px;
+  text-align: center;
+  color: #8fa8be;
+  font-size: 0.88rem;
+  font-style: italic;
+  letter-spacing: 0.03em;
+  border-top: 1px solid rgba(255,255,255,0.06);
 }
 
 /* ─── Responsive ────────────────────────────────────────────────────────────── */
