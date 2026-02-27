@@ -458,11 +458,14 @@ module.exports = async (req, res) => {
 
     if (!session || session.status === undefined) {
       session = createSession();
+      session.phase = "questions";
       return res.status(200).json({
-        message:   WELCOME,
+        message:       `Question 1 of 5\n\n${QUESTIONS[0].text}`,
         session,
-        phase:     "welcome",
-        inputMode: "text"
+        phase:         "questions",
+        phaseLabel:    "Behavioural Evidence",
+        questionIndex: 0,
+        inputMode:     "text"
       });
     }
 
