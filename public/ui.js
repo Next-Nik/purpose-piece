@@ -106,6 +106,8 @@ const UI = {
     "2-domain":         45,
     "2-scale":          60,
     "3-handoff":        75,
+    "thinking":         80,
+    "synthesis":        85,
     3:                  85,
     4:                  100
   },
