@@ -15,13 +15,13 @@ body {
   font-weight: 400;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f0efec;
+  background-color: #111920;
   background-image: url('/background.png');
   background-size: cover;
   background-position: center top;
   background-attachment: fixed;
   min-height: 100vh;
-  color: #2c3e50;
+  color: #dde6ef;
   position: relative;
   overflow-x: hidden;
 }
@@ -52,7 +52,7 @@ body {
 .header h1 {
   font-size: 2rem;
   font-weight: 700;
-  color: #1a2a3a;
+  color: #ffffff;
   margin-bottom: 6px;
   letter-spacing: -0.02em;
 }
@@ -100,7 +100,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding-bottom: 120px; /* space for fixed input */
+  padding-bottom: 120px;
 }
 
 /* ─── Messages ──────────────────────────────────────────────────────────────── */
@@ -115,27 +115,35 @@ body {
   animation: fadeIn 0.3s ease-in;
 }
 
-/* message-assistant kept for legacy safety — synthesis style overrides it */
-.message-assistant {
-  background: #f5f0e8;
-  border: 1px solid #e0d5c0;
-  align-self: flex-start;
+/* All Signal Reader messages — questions, probes, thinking — dark */
+.message-assistant,
+.message-synthesis {
+  max-width: 88%;
+  padding: 20px 24px;
+  border-radius: 12px;
   border-bottom-left-radius: 4px;
-  color: #1a2a3a;
+  background: #1c2b3a;
+  border: 1px solid rgba(255,255,255,0.07);
+  align-self: flex-start;
+  color: #dde6ef;
   font-size: 1.05rem;
   font-weight: 400;
   line-height: 1.85;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  animation: fadeIn 0.4s ease-in;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.2);
 }
 
 .message-user {
   background: #E89842;
-  color: #ffffff !important;
+  color: #ffffff;
   align-self: flex-end;
   border-bottom-right-radius: 4px;
   font-weight: 600;
   font-size: 1.02rem;
   line-height: 1.75;
+  border-radius: 12px;
 }
 
 @keyframes fadeIn {
@@ -149,7 +157,7 @@ body {
   align-items: center;
   gap: 12px;
   margin: 8px 0;
-  opacity: 0.5;
+  opacity: 0.4;
 }
 
 .phase-divider::before,
@@ -157,7 +165,7 @@ body {
   content: '';
   flex: 1;
   height: 1px;
-  background: #c8d0da;
+  background: rgba(255,255,255,0.15);
 }
 
 .phase-divider span {
@@ -169,11 +177,11 @@ body {
   white-space: nowrap;
 }
 
-/* ─── Synthesis bubble — all Signal Reader messages ──────────────────────────── */
-.message-synthesis {
+/* ─── Synthesis mirror (parchment — the one exception) ──────────────────────── */
+.message-synthesis-mirror {
   max-width: 88%;
-  padding: 20px 24px;
-  border-radius: 12px;
+  padding: 24px 28px;
+  border-radius: 16px;
   border-bottom-left-radius: 4px;
   background: #f5f0e8;
   border: 1px solid #e0d5c0;
@@ -181,14 +189,42 @@ body {
   color: #1a2a3a;
   font-size: 1.05rem;
   font-weight: 400;
-  line-height: 1.85;
+  line-height: 1.9;
   white-space: pre-wrap;
   word-wrap: break-word;
   animation: fadeIn 0.4s ease-in;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.12);
 }
 
-/* ─── Option buttons (Phase 1, subdomain) ───────────────────────────────────── */
+/* ─── Synthesis card (headed mirror via HTML) ────────────────────────────────── */
+.synthesis-card {
+  background: #f5f0e8;
+  border: 1px solid #e0d5c0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+}
+
+.synthesis-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #E89842;
+  padding: 20px 28px 0;
+  margin-bottom: 14px;
+}
+
+.synthesis-body {
+  padding: 0 28px 28px;
+  color: #1a2a3a;
+  font-size: 1.08rem;
+  font-weight: 400;
+  line-height: 1.9;
+  white-space: pre-wrap;
+}
+
+/* ─── Option buttons ────────────────────────────────────────────────────────── */
 .option-buttons {
   display: flex;
   flex-direction: column;
@@ -196,19 +232,19 @@ body {
   margin-top: 4px;
   align-self: flex-start;
   width: 100%;
-  max-width: 85%;
+  max-width: 88%;
 }
 
 .option-btn {
-  background: #ffffff;
-  border: 1.5px solid #dde3ea;
+  background: #162330;
+  border: 1.5px solid rgba(255,255,255,0.1);
   border-radius: 10px;
   padding: 14px 18px;
   text-align: left;
   cursor: pointer;
   font-family: 'Work Sans', sans-serif;
   font-size: 0.95rem;
-  color: #1a2a3a;
+  color: #c8d8e8;
   line-height: 1.5;
   transition: all 0.15s ease;
   display: flex;
@@ -218,7 +254,7 @@ body {
 
 .option-btn:hover {
   border-color: #E89842;
-  background: #fdf7ef;
+  background: #1e3040;
   transform: translateX(2px);
 }
 
@@ -237,7 +273,7 @@ body {
 .option-letter {
   font-weight: 700;
   min-width: 20px;
-  opacity: 0.7;
+  opacity: 0.6;
 }
 
 .option-btn.selected .option-letter {
@@ -248,8 +284,8 @@ body {
 .typing-indicator {
   display: none;
   align-self: flex-start;
-  background: #ffffff;
-  border: 1px solid #e8edf2;
+  background: #1c2b3a;
+  border: 1px solid rgba(255,255,255,0.07);
   border-radius: 12px;
   border-bottom-left-radius: 4px;
   padding: 14px 18px;
@@ -283,9 +319,9 @@ body {
   bottom: 0;
   left: 0;
   right: 0;
-  background: rgba(240, 239, 236, 0.96);
+  background: rgba(14, 20, 27, 0.96);
   backdrop-filter: blur(8px);
-  border-top: 1px solid #dde3ea;
+  border-top: 1px solid rgba(255,255,255,0.07);
   padding: 16px 20px;
   z-index: 100;
 }
@@ -301,12 +337,12 @@ body {
 #user-input {
   flex: 1;
   padding: 12px 16px;
-  border: 1.5px solid #dde3ea;
+  border: 1.5px solid rgba(255,255,255,0.1);
   border-radius: 10px;
   font-family: 'Work Sans', sans-serif;
   font-size: 1rem;
-  color: #1a2a3a;
-  background: #ffffff;
+  color: #dde6ef;
+  background: #162330;
   resize: none;
   min-height: 48px;
   max-height: 120px;
@@ -320,12 +356,11 @@ body {
 }
 
 #user-input::placeholder {
-  color: #a0b0c0;
+  color: #4a6070;
 }
 
 #user-input:disabled {
-  background: #f5f5f5;
-  opacity: 0.6;
+  opacity: 0.4;
 }
 
 .btn-send {
@@ -346,7 +381,7 @@ body {
 .btn-send:hover  { background: #d4882f; }
 .btn-send:active { background: #c07820; }
 .btn-send:disabled {
-  background: #c0ccd8;
+  background: rgba(255,255,255,0.1);
   cursor: not-allowed;
 }
 
@@ -356,7 +391,7 @@ body {
   border: none;
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(20, 30, 40, 0.18), 0 2px 8px rgba(20, 30, 40, 0.1);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.2);
 }
 
 .carousel-track {
@@ -372,7 +407,6 @@ body {
   flex-shrink: 0;
 }
 
-/* Slide section label */
 .slide-label {
   display: block;
   font-size: 0.72rem !important;
@@ -458,53 +492,9 @@ body {
 
 .carousel-begin:hover { opacity: 0.7; }
 
-/* ─── I'm ready button (welcome phase) ──────────────────────────────────────── */
+/* ─── I'm ready button — removed, Begin handles this now ─────────────────────── */
 .btn-ready {
-  align-self: flex-end;
-  background: #E89842;
-  color: #ffffff;
-  border: none;
-  border-radius: 10px;
-  padding: 13px 28px;
-  font-family: 'Work Sans', sans-serif;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s ease;
-  margin-top: 4px;
-  animation: fadeIn 0.3s ease-in;
-}
-
-.btn-ready:hover  { background: #d4882f; }
-.btn-ready:active { background: #c07820; }
-
-
-/* ─── Synthesis card (headed mirror) ────────────────────────────────────────── */
-.synthesis-card {
-  background: #f5f0e8;
-  border: 1px solid #e0d5c0;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
-}
-
-.synthesis-label {
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #E89842;
-  padding: 20px 28px 0;
-  margin-bottom: 14px;
-}
-
-.synthesis-body {
-  padding: 0 28px 28px;
-  color: #1a2a3a;
-  font-size: 1.08rem;
-  font-weight: 400;
-  line-height: 1.9;
-  white-space: pre-wrap;
+  display: none;
 }
 
 /* ─── Profile delivery ──────────────────────────────────────────────────────── */
@@ -523,12 +513,14 @@ body {
   color: #dde6ef;
   font-size: 1rem;
   line-height: 1.75;
+  border: 1px solid rgba(255,255,255,0.07);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
 }
 
 .profile-hero {
   padding: 32px 32px 24px;
   border-bottom: 1px solid rgba(255,255,255,0.08);
-  background: #1c2b3a;
+  background: #162330;
 }
 
 .profile-archetype-name {
@@ -548,65 +540,17 @@ body {
   text-transform: uppercase;
 }
 
-/* Standalone summary card — appears before the dark profile card */
-.profile-summary-card {
-  background: #ffffff;
-  border: 1px solid #e0d5c0;
-  border-radius: 12px;
-  padding: 20px 24px;
-  margin-bottom: 12px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-}
-
-.profile-summary-card .profile-section-label {
+.profile-section-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   color: #E89842;
-  font-size: 1.1rem;
   margin-bottom: 10px;
 }
 
-.profile-summary-card p {
-  color: #1a2a3a;
-  font-size: 1.05rem;
-  font-weight: 500;
-  line-height: 1.75;
-  margin-bottom: 8px;
-}
-
-.profile-summary-card p:last-child { margin-bottom: 0; }
-
-/* Old in-card summary — no longer used but kept for safety */
-.profile-summary {
-  padding: 18px 32px;
-  background: rgba(232, 152, 66, 0.08);
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-}
-
-.profile-summary p {
-  color: #c8d8e8;
-  font-size: 0.97rem;
-  margin-bottom: 8px;
-  font-weight: 500;
-}
-
-.profile-summary p:last-child { margin-bottom: 0; }
-
-.profile-section-label {
-  font-size: 1.0rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #E89842;
-  margin-bottom: 8px;
-}
-
-.profile-section:last-child .profile-section-label {
-  font-size: 1.0rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-}
-
 .profile-section {
-  padding: 16px 32px;
+  padding: 20px 32px;
   border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
@@ -624,7 +568,7 @@ body {
 
 .profile-rule {
   height: 1px;
-  background: rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.08);
   margin: 0 32px;
 }
 
@@ -676,7 +620,6 @@ body {
   line-height: 1.65;
 }
 
-
 /* ─── Profile closing line ───────────────────────────────────────────────────── */
 .profile-closing {
   padding: 24px 32px 32px;
@@ -688,24 +631,11 @@ body {
   border-top: 1px solid rgba(255,255,255,0.06);
 }
 
-/* ─── Responsive ────────────────────────────────────────────────────────────── */
-@media (max-width: 600px) {
-  .header { padding: 24px 0 16px; }
-  .header h1 { font-size: 1.6rem; }
-  .message { max-width: 92%; font-size: 0.95rem; }
-  .option-buttons { max-width: 100%; }
-  .carousel-slide { padding: 24px 20px; }
-  .profile-hero { padding: 24px 20px 20px; }
-  .profile-archetype-name { font-size: 1.9rem; }
-  .profile-summary, .profile-section { padding: 18px 20px; }
-  .profile-rule { margin: 0 20px; }
-}
-
-/* ─── Ritual threshold — separates intro from first question ────────────────── */
+/* ─── Ritual threshold ───────────────────────────────────────────────────────── */
 .section-break {
   margin: 2rem 0;
   border: none;
-  border-top: 1px solid #dde5ef;
+  border-top: 1px solid rgba(255,255,255,0.07);
 }
 
 .question-header {
@@ -715,4 +645,17 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-size: 0.72rem;
+}
+
+/* ─── Responsive ────────────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .header { padding: 24px 0 16px; }
+  .header h1 { font-size: 1.6rem; }
+  .message { max-width: 92%; font-size: 0.95rem; }
+  .option-buttons { max-width: 100%; }
+  .carousel-slide { padding: 24px 20px; }
+  .profile-hero { padding: 24px 20px 20px; }
+  .profile-archetype-name { font-size: 1.9rem; }
+  .profile-section { padding: 18px 20px; }
+  .profile-rule { margin: 0 20px; }
 }
