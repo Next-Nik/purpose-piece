@@ -115,9 +115,10 @@ body {
   animation: fadeIn 0.3s ease-in;
 }
 
+/* message-assistant kept for legacy safety — synthesis style overrides it */
 .message-assistant {
-  background: #ffffff !important;
-  border: 1px solid #dde5ef;
+  background: #f5f0e8;
+  border: 1px solid #e0d5c0;
   align-self: flex-start;
   border-bottom-left-radius: 4px;
   color: #1a2a3a;
