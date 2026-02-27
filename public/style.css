@@ -432,14 +432,131 @@ body {
 /* ─── Profile delivery ──────────────────────────────────────────────────────── */
 .message-profile {
   max-width: 100%;
-  background: #1a2a3a;
-  color: #e8edf2;
-  padding: 28px 32px;
-  border-radius: 16px;
   align-self: stretch;
-  white-space: pre-wrap;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.profile-card {
+  background: #1c2b3a;
+  border-radius: 16px;
+  overflow: hidden;
+  color: #dde6ef;
+  font-size: 1rem;
   line-height: 1.75;
+}
+
+.profile-hero {
+  padding: 36px 32px 28px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  background: linear-gradient(135deg, #1c2b3a 0%, #243548 100%);
+}
+
+.profile-archetype-name {
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin-bottom: 8px;
+}
+
+.profile-meta {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #E89842;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.profile-summary {
+  padding: 24px 32px;
+  background: rgba(232, 152, 66, 0.08);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.profile-summary p {
+  color: #c8d8e8;
   font-size: 0.97rem;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.profile-summary p:last-child { margin-bottom: 0; }
+
+.profile-section-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #E89842;
+  margin-bottom: 10px;
+}
+
+.profile-section {
+  padding: 22px 32px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.profile-section:last-child { border-bottom: none; }
+
+.profile-section p {
+  color: #c8d8e8;
+  font-size: 0.97rem;
+  font-weight: 400;
+  line-height: 1.8;
+}
+
+.profile-rule {
+  height: 1px;
+  background: rgba(255,255,255,0.1);
+  margin: 0 32px;
+}
+
+.profile-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.profile-action {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  font-size: 0.95rem;
+  color: #c8d8e8;
+  line-height: 1.65;
+}
+
+.profile-action-tier {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #E89842;
+  white-space: nowrap;
+  min-width: 72px;
+  padding-top: 3px;
+}
+
+.profile-resources {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.profile-resource-title {
+  font-weight: 600;
+  color: #dde6ef;
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+}
+
+.profile-resource-why {
+  font-size: 0.9rem;
+  color: #8fa8be;
+  line-height: 1.65;
 }
 
 /* ─── Responsive ────────────────────────────────────────────────────────────── */
@@ -449,7 +566,10 @@ body {
   .message { max-width: 92%; font-size: 0.95rem; }
   .option-buttons { max-width: 100%; }
   .carousel-slide { padding: 24px 20px; }
-  .message-profile { padding: 20px 18px; }
+  .profile-hero { padding: 24px 20px 20px; }
+  .profile-archetype-name { font-size: 1.9rem; }
+  .profile-summary, .profile-section { padding: 18px 20px; }
+  .profile-rule { margin: 0 20px; }
 }
 
 /* ─── Ritual threshold — separates intro from first question ────────────────── */
