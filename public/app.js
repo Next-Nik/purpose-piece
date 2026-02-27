@@ -209,21 +209,6 @@ const App = {
       UI.scrollToMessage(buttonsEl);
     }
 
-    // Welcome phase: show "I'm ready" button instead of text input
-    if (data.phase === "welcome") {
-      UI.setInputMode("none");
-      const readyBtn = document.createElement("button");
-      readyBtn.className = "btn-ready";
-      readyBtn.textContent = "I'm ready";
-      readyBtn.addEventListener("click", () => {
-        readyBtn.remove();
-        this.sendMessage("I'm ready", false);
-      });
-      chatContainer.appendChild(readyBtn);
-      setTimeout(() => readyBtn.scrollIntoView({ behavior: "smooth", block: "nearest" }), 100);
-      return;
-    }
-
     // Set input mode
     if (data.complete) {
       UI.setInputMode("none");
