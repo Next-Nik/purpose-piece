@@ -186,7 +186,8 @@ const App = {
         chatContainer.appendChild(header);
       }
 
-      const msgEl = UI.createAssistantMessage(data.message);
+      const isSynthesis = data.phase === "synthesis";
+      const msgEl = UI.createAssistantMessage(data.message, isSynthesis);
       chatContainer.appendChild(msgEl);
       setTimeout(() => msgEl.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
     }
