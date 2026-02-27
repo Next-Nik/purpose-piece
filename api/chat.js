@@ -364,13 +364,7 @@ function renderPhase4(p4) {
     </div>`
   ).join("");
 
-  return `<div class="profile-summary-card">
-    <div class="profile-section-label">In short</div>
-    <p>${esc(p4.pattern_restatement.split(". ")[0])}.</p>
-    <p>${esc(p4.responsibility.split(". ")[0])}.</p>
-  </div>
-
-  <div class="profile-card">
+  return `<div class="profile-card">
 
     <div class="profile-hero">
       <div class="profile-archetype-name">${esc(archetypeName)}</div>
@@ -428,6 +422,8 @@ function renderPhase4(p4) {
       <div class="profile-section-label">Worth exploring</div>
       <div class="profile-resources">${resourcesHtml}</div>
     </div>
+
+    <div class="profile-closing">Your pattern is yours to inhabit.</div>
 
   </div>`;
 }
@@ -516,7 +512,7 @@ module.exports = async (req, res) => {
           // Return thinking state first — client will autoAdvance into synthesis
           session.phase = "thinking";
           return res.status(200).json({
-            message:      "Reading the pattern across your answers...\n\nThis takes a moment. What follows reflects how you actually move — not a category, but a mirror. Stay with it.",
+            message:      "Reading the pattern in your answers…\n\nThis takes a moment.",
             session,
             phase:        "thinking",
             phaseLabel:   "Pattern Recognition",
@@ -562,7 +558,7 @@ module.exports = async (req, res) => {
         if (session.questionIndex >= 5) {
           session.phase = "thinking";
           return res.status(200).json({
-            message:      "Reading the pattern across your answers...\n\nThis takes a moment. What follows reflects how you actually move — not a category, but a mirror. Stay with it.",
+            message:      "Reading the pattern in your answers…\n\nThis takes a moment.",
             session,
             phase:        "thinking",
             phaseLabel:   "Pattern Recognition",
@@ -595,6 +591,11 @@ module.exports = async (req, res) => {
       return await synthesiseAndFrame(session, res);
     }
 
+    // ── Profiling phase → deliver Phase 4 ────────────────────────────────────
+    if (session.phase === "profiling") {
+      return await frameAndDeliver(session, res);
+    }
+
     // ── Framing phase (Phase 4) ───────────────────────────────────────────────
     if (session.phase === "framing") {
       return await frameAndDeliver(session, res);
@@ -623,8 +624,13 @@ async function synthesiseAndFrame(session, res) {
   session.synthesis = synthesis;
   session.phase     = "framing";
 
+  const synthesisHtml = `<div class="synthesis-card">
+    <div class="synthesis-label">What we observed</div>
+    <div class="synthesis-body">${esc(synthesis.synthesis_text)}</div>
+  </div>`;
+
   return res.status(200).json({
-    message:      synthesis.synthesis_text,
+    message:      synthesisHtml,
     session,
     phase:        "synthesis",
     phaseLabel:   "Pattern Recognition",
@@ -635,6 +641,21 @@ async function synthesiseAndFrame(session, res) {
 }
 
 async function frameAndDeliver(session, res) {
+  // First pass: send transition message while Phase 4 runs
+  if (session.phase === "framing") {
+    session.phase = "profiling";
+    return res.status(200).json({
+      message:      "Shaping your profile…",
+      session,
+      phase:        "transitioning",
+      phaseLabel:   "Your Purpose Piece",
+      inputMode:    "none",
+      autoAdvance:  true,
+      advanceDelay: 1000
+    });
+  }
+
+  // Second pass: actually run Phase 4 and deliver
   let p4;
   try {
     p4 = await runPhase4(session.transcript, session.synthesis);
