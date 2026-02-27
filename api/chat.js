@@ -333,19 +333,105 @@ async function runPhase4(transcript, synthesis) {
   return extractJSON(response.content[0].text);
 }
 
-// ─── Render Phase 4 as readable text ─────────────────────────────────────────
-function renderPhase4(p4) {
-  const resources = p4.resources.map(r => `${r.title}\n${r.why}`).join("\n\n");
+// ─── Sanitise text for safe HTML insertion ───────────────────────────────────
+function esc(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
 
-  return [
-    p4.pattern_restatement,
-    p4.archetype_frame,
-    p4.domain_frame,
-    p4.scale_frame,
-    p4.responsibility,
-    `Here is what this looks like in practice.\n\nThis week — ${p4.actions.light}\n\nOngoing — ${p4.actions.medium}\n\nStructural — ${p4.actions.deep}`,
-    `Worth exploring:\n\n${resources}`
-  ].join("\n\n---\n\n");
+// ─── Render Phase 4 as structured HTML ───────────────────────────────────────
+function renderPhase4(p4) {
+
+  // Extract archetype / domain / scale from frame text
+  const archetypeMatch = p4.archetype_frame.match(/pattern most aligned with this (?:movement )?is ([\w]+)/i);
+  const archetypeName  = archetypeMatch ? archetypeMatch[1] : "Your Pattern";
+
+  const domainMatch = p4.domain_frame.match(/territory.*?is ([A-Za-z &]+?)[.—]/i);
+  const domainName  = domainMatch ? domainMatch[1].trim() : "";
+
+  const scaleMatch = p4.scale_frame.match(/scale.*?is ([A-Za-z]+)/i);
+  const scaleName  = scaleMatch ? scaleMatch[1].trim() : "";
+
+  const resourcesHtml = p4.resources.map(r =>
+    `<div class="profile-resource">
+      <div class="profile-resource-title">${esc(r.title)}</div>
+      <div class="profile-resource-why">${esc(r.why)}</div>
+    </div>`
+  ).join("");
+
+  return `<div class="profile-card">
+
+    <div class="profile-hero">
+      <div class="profile-archetype-name">${esc(archetypeName)}</div>
+      <div class="profile-meta">${esc(domainName)}${domainName && scaleName ? " &middot; " : ""}${esc(scaleName)}</div>
+    </div>
+
+    <div class="profile-summary">
+      <div class="profile-section-label">In short</div>
+      <p>${esc(p4.pattern_restatement.split(". ")[0])}.</p>
+      <p>${esc(p4.responsibility.split(". ")[0])}.</p>
+    </div>
+
+    <div class="profile-rule"></div>
+
+    <div class="profile-section">
+      <div class="profile-section-label">Pattern</div>
+      <p>${esc(p4.pattern_restatement)}</p>
+    </div>
+
+    <div class="profile-section">
+      <div class="profile-section-label">Archetype</div>
+      <p>${esc(p4.archetype_frame)}</p>
+    </div>
+
+    <div class="profile-section">
+      <div class="profile-section-label">Domain</div>
+      <p>${esc(p4.domain_frame)}</p>
+    </div>
+
+    <div class="profile-section">
+      <div class="profile-section-label">Scale</div>
+      <p>${esc(p4.scale_frame)}</p>
+    </div>
+
+    <div class="profile-section">
+      <div class="profile-section-label">Responsibility</div>
+      <p>${esc(p4.responsibility)}</p>
+    </div>
+
+    <div class="profile-rule"></div>
+
+    <div class="profile-section">
+      <div class="profile-section-label">What this looks like</div>
+      <div class="profile-actions">
+        <div class="profile-action">
+          <span class="profile-action-tier">This week</span>
+          <span>${esc(p4.actions.light)}</span>
+        </div>
+        <div class="profile-action">
+          <span class="profile-action-tier">Ongoing</span>
+          <span>${esc(p4.actions.medium)}</span>
+        </div>
+        <div class="profile-action">
+          <span class="profile-action-tier">Structural</span>
+          <span>${esc(p4.actions.deep)}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="profile-rule"></div>
+
+    <div class="profile-section">
+      <div class="profile-section-label">Worth exploring</div>
+      <div class="profile-resources">${resourcesHtml}</div>
+    </div>
+
+  </div>`;
 }
 
 // ─── Welcome message ──────────────────────────────────────────────────────────
@@ -428,7 +514,21 @@ module.exports = async (req, res) => {
           session.probeCount = 0;
           session.questionIndex++;
 
-          if (session.questionIndex >= 5) return await synthesiseAndFrame(session, res);
+          if (session.questionIndex >= 5) {
+          // Return thinking state first — client will autoAdvance into synthesis
+          session.phase = "thinking";
+          return res.status(200).json({
+            message:      "Reading the pattern across your answers...
+
+This takes a moment. What follows reflects how you actually move — not a category, but a mirror. Stay with it.",
+            session,
+            phase:        "thinking",
+            phaseLabel:   "Pattern Recognition",
+            inputMode:    "none",
+            autoAdvance:  true,
+            advanceDelay: 2000
+          });
+        }
 
           return res.status(200).json({
             message:       `Question ${session.questionIndex + 1} of 5\n\n${QUESTIONS[session.questionIndex].text}`,
@@ -463,7 +563,20 @@ module.exports = async (req, res) => {
         session.probeCount = 0;
         session.questionIndex++;
 
-        if (session.questionIndex >= 5) return await synthesiseAndFrame(session, res);
+        if (session.questionIndex >= 5) {
+          session.phase = "thinking";
+          return res.status(200).json({
+            message:      "Reading the pattern across your answers...
+
+This takes a moment. What follows reflects how you actually move — not a category, but a mirror. Stay with it.",
+            session,
+            phase:        "thinking",
+            phaseLabel:   "Pattern Recognition",
+            inputMode:    "none",
+            autoAdvance:  true,
+            advanceDelay: 2000
+          });
+        }
 
         return res.status(200).json({
           message:       `Question ${session.questionIndex + 1} of 5\n\n${QUESTIONS[session.questionIndex].text}`,
@@ -481,6 +594,11 @@ module.exports = async (req, res) => {
         message: PROBES[qi][1], session, phase: "questions",
         phaseLabel: "Behavioural Evidence", inputMode: "text", isProbe: true
       });
+    }
+
+    // ── Thinking phase → trigger synthesis ───────────────────────────────────
+    if (session.phase === "thinking") {
+      return await synthesiseAndFrame(session, res);
     }
 
     // ── Framing phase (Phase 4) ───────────────────────────────────────────────
