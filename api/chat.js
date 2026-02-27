@@ -351,10 +351,10 @@ function renderPhase4(p4) {
   const archetypeMatch = p4.archetype_frame.match(/pattern most aligned with this (?:movement )?is ([\w]+)/i);
   const archetypeName  = archetypeMatch ? archetypeMatch[1] : "Your Pattern";
 
-  const domainMatch = p4.domain_frame.match(/territory.*?is ([A-Za-z &]+?)[.—]/i);
+  const domainMatch = p4.domain_frame.match(/territory.*?is ([A-Z][a-z]+(?: ?[&A-Z][a-z]+)*)/); 
   const domainName  = domainMatch ? domainMatch[1].trim() : "";
 
-  const scaleMatch = p4.scale_frame.match(/scale.*?is ([A-Za-z]+)/i);
+  const scaleMatch = p4.scale_frame.match(/scale.*?is ([A-Z][a-z]+)/);
   const scaleName  = scaleMatch ? scaleMatch[1].trim() : "";
 
   const resourcesHtml = p4.resources.map(r =>
@@ -364,20 +364,18 @@ function renderPhase4(p4) {
     </div>`
   ).join("");
 
-  return `<div class="profile-card">
+  return `<div class="profile-summary-card">
+    <div class="profile-section-label">In short</div>
+    <p>${esc(p4.pattern_restatement.split(". ")[0])}.</p>
+    <p>${esc(p4.responsibility.split(". ")[0])}.</p>
+  </div>
+
+  <div class="profile-card">
 
     <div class="profile-hero">
       <div class="profile-archetype-name">${esc(archetypeName)}</div>
       <div class="profile-meta">${esc(domainName)}${domainName && scaleName ? " &middot; " : ""}${esc(scaleName)}</div>
     </div>
-
-    <div class="profile-summary">
-      <div class="profile-section-label">In short</div>
-      <p>${esc(p4.pattern_restatement.split(". ")[0])}.</p>
-      <p>${esc(p4.responsibility.split(". ")[0])}.</p>
-    </div>
-
-    <div class="profile-rule"></div>
 
     <div class="profile-section">
       <div class="profile-section-label">Pattern</div>
