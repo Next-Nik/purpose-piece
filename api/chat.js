@@ -518,9 +518,7 @@ module.exports = async (req, res) => {
           // Return thinking state first — client will autoAdvance into synthesis
           session.phase = "thinking";
           return res.status(200).json({
-            message:      "Reading the pattern across your answers...
-
-This takes a moment. What follows reflects how you actually move — not a category, but a mirror. Stay with it.",
+            message:      "Reading the pattern across your answers...\n\nThis takes a moment. What follows reflects how you actually move — not a category, but a mirror. Stay with it.",
             session,
             phase:        "thinking",
             phaseLabel:   "Pattern Recognition",
@@ -566,9 +564,7 @@ This takes a moment. What follows reflects how you actually move — not a categ
         if (session.questionIndex >= 5) {
           session.phase = "thinking";
           return res.status(200).json({
-            message:      "Reading the pattern across your answers...
-
-This takes a moment. What follows reflects how you actually move — not a category, but a mirror. Stay with it.",
+            message:      "Reading the pattern across your answers...\n\nThis takes a moment. What follows reflects how you actually move — not a category, but a mirror. Stay with it.",
             session,
             phase:        "thinking",
             phaseLabel:   "Pattern Recognition",
