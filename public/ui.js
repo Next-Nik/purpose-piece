@@ -22,8 +22,15 @@ const UI = {
       return div;
     }
 
-    // All Signal Reader messages — warm parchment style
-    div.className = "message message-synthesis";
+    // Synthesis mirror (plain text phase) — parchment exception
+    if (isSynthesis) {
+      div.className = "message message-synthesis-mirror";
+      div.textContent = text;
+      return div;
+    }
+
+    // All other Signal Reader messages — dark
+    div.className = "message message-assistant";
     div.textContent = text;
     return div;
   },
