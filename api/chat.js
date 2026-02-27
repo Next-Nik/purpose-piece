@@ -610,7 +610,7 @@ module.exports = async (req, res) => {
 
 // ─── Synthesis → framing pipeline ────────────────────────────────────────────
 async function synthesiseAndFrame(session, res) {
-  session.phase = "synthesising";
+  session.phase = "synthesis";
 
   let synthesis;
   try {
