@@ -12,6 +12,9 @@
 
 body {
   font-family: 'Work Sans', sans-serif;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   background-color: #f0efec;
   background-image: url('/background.png');
   background-size: cover;
@@ -56,7 +59,8 @@ body {
 .header p {
   font-size: 1rem;
   color: #7B8C9E;
-  font-weight: 400;
+  font-weight: 500;
+  letter-spacing: 0.02em;
 }
 
 /* ─── Progress bar ──────────────────────────────────────────────────────────── */
@@ -102,8 +106,8 @@ body {
   max-width: 85%;
   padding: 16px 20px;
   border-radius: 12px;
-  line-height: 1.65;
-  font-size: 1rem;
+  line-height: 1.8;
+  font-size: 1.05rem;
   white-space: pre-wrap;
   word-wrap: break-word;
   animation: fadeIn 0.3s ease-in;
@@ -111,10 +115,14 @@ body {
 
 .message-assistant {
   background: #ffffff;
-  border: 1px solid #e8edf2;
+  border: 1px solid #e0e8f0;
   align-self: flex-start;
   border-bottom-left-radius: 4px;
   color: #1a2a3a;
+  font-size: 1.05rem;
+  font-weight: 400;
+  line-height: 1.8;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
 }
 
 .message-user {
@@ -123,6 +131,7 @@ body {
   align-self: flex-end;
   border-bottom-right-radius: 4px;
   font-weight: 500;
+  font-size: 1.02rem;
 }
 
 @keyframes fadeIn {
@@ -342,8 +351,11 @@ body {
 }
 
 .carousel-slide p {
-  margin-bottom: 16px;
-  color: #2c3e50;
+  margin-bottom: 18px;
+  color: #1a2a3a;
+  font-size: 1.05rem;
+  font-weight: 400;
+  line-height: 1.8;
 }
 
 .carousel-slide p:last-of-type {
