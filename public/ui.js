@@ -8,13 +8,15 @@ const UI = {
   createAssistantMessage(text) {
     const div = document.createElement("div");
 
-    // Profile delivery gets special dark styling
-    if (text.includes("YOUR PURPOSE PIECE")) {
+    // Profile delivery: HTML string from renderPhase4 — use innerHTML
+    if (text.includes("profile-card")) {
       div.className = "message message-profile";
-    } else {
-      div.className = "message message-assistant";
+      div.innerHTML = text;
+      return div;
     }
 
+    // All other messages: plain text — use textContent (XSS safe)
+    div.className = "message message-assistant";
     div.textContent = text;
     return div;
   },
