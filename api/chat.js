@@ -423,21 +423,19 @@ function renderPhase4(p4) {
       <div class="profile-resources">${resourcesHtml}</div>
     </div>
 
-    <div class="profile-closing">Your pattern is yours to inhabit.</div>
+    <div class="profile-closing">Your Purpose Piece. This is where you fit.</div>
 
   </div>`;
 }
 
 // ─── Welcome message ──────────────────────────────────────────────────────────
-const WELCOME = `Something is already true about how you move through the world.
+const WELCOME = `Five questions. Each one asks for a specific moment, a real decision, an honest cost.
 
-Not what you aspire to. Not what you think you should be. The actual pattern — the instinct that shows up before you decide to let it, the thing that frustrates you when others don't see it, the cost you pay without being asked to.
+Answer as yourself — not who you're working toward.
 
-This isn't a quiz. There are no right answers. What you're about to do is describe your actual behaviour — specific moments, real decisions, genuine costs — and let the pattern speak for itself.
+At the end, you'll receive a profile: your Purpose Piece, the domain where it belongs, the scale where it's most coherent right now, and what it asks of you.
 
-Five questions. Answer honestly, not impressively.
-
-Ready when you are.`;
+The pattern speaks through what you actually do.`;
 
 // ─── Main handler ─────────────────────────────────────────────────────────────
 module.exports = async (req, res) => {
@@ -512,10 +510,10 @@ module.exports = async (req, res) => {
           // Return thinking state first — client will autoAdvance into synthesis
           session.phase = "thinking";
           return res.status(200).json({
-            message:      "Reading the pattern in your answers…\n\nThis takes a moment.",
+            message:      "Reading the pattern in your answers.\n\nThis takes a moment...",
             session,
             phase:        "thinking",
-            phaseLabel:   "Pattern Recognition",
+            phaseLabel:   "Signal Reading",
             inputMode:    "none",
             autoAdvance:  true,
             advanceDelay: 2000
@@ -558,10 +556,10 @@ module.exports = async (req, res) => {
         if (session.questionIndex >= 5) {
           session.phase = "thinking";
           return res.status(200).json({
-            message:      "Reading the pattern in your answers…\n\nThis takes a moment.",
+            message:      "Reading the pattern in your answers.\n\nThis takes a moment...",
             session,
             phase:        "thinking",
-            phaseLabel:   "Pattern Recognition",
+            phaseLabel:   "Signal Reading",
             inputMode:    "none",
             autoAdvance:  true,
             advanceDelay: 2000
@@ -589,11 +587,6 @@ module.exports = async (req, res) => {
     // ── Thinking phase → trigger synthesis ───────────────────────────────────
     if (session.phase === "thinking") {
       return await synthesiseAndFrame(session, res);
-    }
-
-    // ── Profiling phase → deliver Phase 4 ────────────────────────────────────
-    if (session.phase === "profiling") {
-      return await frameAndDeliver(session, res);
     }
 
     // ── Framing phase (Phase 4) ───────────────────────────────────────────────
@@ -624,13 +617,8 @@ async function synthesiseAndFrame(session, res) {
   session.synthesis = synthesis;
   session.phase     = "framing";
 
-  const synthesisHtml = `<div class="synthesis-card">
-    <div class="synthesis-label">What we observed</div>
-    <div class="synthesis-body">${esc(synthesis.synthesis_text)}</div>
-  </div>`;
-
   return res.status(200).json({
-    message:      synthesisHtml,
+    message:      synthesis.synthesis_text,
     session,
     phase:        "synthesis",
     phaseLabel:   "Pattern Recognition",
@@ -641,21 +629,6 @@ async function synthesiseAndFrame(session, res) {
 }
 
 async function frameAndDeliver(session, res) {
-  // First pass: send transition message while Phase 4 runs
-  if (session.phase === "framing") {
-    session.phase = "profiling";
-    return res.status(200).json({
-      message:      "Shaping your profile…",
-      session,
-      phase:        "transitioning",
-      phaseLabel:   "Your Purpose Piece",
-      inputMode:    "none",
-      autoAdvance:  true,
-      advanceDelay: 1000
-    });
-  }
-
-  // Second pass: actually run Phase 4 and deliver
   let p4;
   try {
     p4 = await runPhase4(session.transcript, session.synthesis);
