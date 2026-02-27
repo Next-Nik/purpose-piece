@@ -5,13 +5,20 @@
 const UI = {
 
   // ─── Message bubbles ────────────────────────────────────────────────────────
-  createAssistantMessage(text) {
+  createAssistantMessage(text, isSynthesis = false) {
     const div = document.createElement("div");
 
     // Profile delivery: HTML string from renderPhase4 — use innerHTML
     if (text.includes("profile-card")) {
       div.className = "message message-profile";
       div.innerHTML = text;
+      return div;
+    }
+
+    // Phase 3 synthesis mirror — warm distinct styling
+    if (isSynthesis) {
+      div.className = "message message-synthesis";
+      div.textContent = text;
       return div;
     }
 
