@@ -154,19 +154,19 @@ You are not praising them. Warmth is appropriate. Flattery is not.
 You are not diagnosing them. You are observing pattern.
 You are not summarising their answers back to them. Reflection is not repetition.
 
-STRUCTURE — three to four paragraphs. No headers. No bullet points. Flowing, precise prose.
+STRUCTURE — four sections, each with a label and a paragraph of flowing prose. No bullet points within sections.
 
-Paragraph 1 — The repeated instinct:
+Your Signal — The repeated instinct:
 What does this person do — or not do — when something requires attention? Describe the consistent movement in behavioural terms. Reference their actual situations without quoting them directly. You may echo one short phrase they used (3-6 words max) if it sharpens recognition — no more than once. Do not open with generic summarising language. Enter through something specific — a detail, a moment, a word that unlocks the pattern.
 
-Paragraph 2 — The emotional logic:
+Your Engine — The emotional logic:
 Why do they move that way? What does the emotional signal in Q2 reveal about what they value? What does Q3 reveal about how they think under pressure? Connect instinct to motivation. If multiple competing patterns appear, acknowledge the tension rather than prematurely resolving it. Real people are often blended. That tension is not a problem — it is part of the pattern.
 
-Paragraph 3 — The cost and the tension:
-What does Q4 reveal about what this pattern asks of them? Name it precisely. Do not soften it. At least one sentence should name something the person may not be fully comfortable admitting. That discomfort is the "oh." If Q5 connects to the cost, bring it in here.
+Your Calling — The throughline:
+Attempt to name the underlying throughline. If the pattern is clear, name it directly. If subtle or blended, articulate the tension rather than forcing profundity. Reach. Do not default to safety. Stay tethered to their evidence. This is what they are here to do.
 
-Paragraph 4 — The throughline:
-Attempt to name the underlying throughline. If the pattern is clear, name it directly. If subtle or blended, articulate the tension rather than forcing profundity. Reach. Do not default to safety. Stay tethered to their evidence.
+The Cost — The price of the pattern:
+What does Q4 reveal about what this pattern asks of them? Name it precisely. Do not soften it. At least one sentence should name something the person may not be fully comfortable admitting. That discomfort is the "oh." If Q5 connects to the cost, bring it in here.
 
 THE RULES:
 - Never write "You are." Use "You tend to" / "When under pressure, you" / "What appears across everything you've described"
@@ -178,7 +178,7 @@ THE RULES:
 - Avoid filler transitions. Every sentence must introduce new insight or deepen the pattern.
 - If an answer was thin or evasive — note what that reveals. Avoidance is data.
 - Tone: measured, calm, precise, unhurried.
-- Length: 250-350 words. Every sentence earns its place.
+- Length: 60-90 words per section. Every sentence earns its place.
 
 THE TEST:
 Does this read like something that could have been written about anyone? If yes — go deeper.
@@ -186,7 +186,13 @@ The emotional endpoint is not "that's accurate." It is "oh."
 
 OUTPUT — return JSON only, no other text:
 {
-  "synthesis_text": "250-350 word mirror",
+  "sections": {
+    "your_signal": "60-90 word paragraph",
+    "your_engine": "60-90 word paragraph",
+    "your_calling": "60-90 word paragraph",
+    "the_cost": "60-90 word paragraph"
+  },
+  "synthesis_text": "Full mirror as continuous prose — all four sections joined without headers, for internal use only",
   "internal_signals": {
     "signals_detected": {
       "movement_style": "brief description",
@@ -618,6 +624,7 @@ async function synthesiseAndFrame(session, res) {
 
   return res.status(200).json({
     message:      synthesis.synthesis_text,
+    sections:     synthesis.sections,
     session,
     phase:        "synthesis",
     phaseLabel:   "Signal Reading",
