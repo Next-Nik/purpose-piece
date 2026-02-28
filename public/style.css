@@ -176,32 +176,32 @@ body {
   white-space: nowrap;
 }
 
-/* ─── Synthesis mirror (parchment — the one exception) ──────────────────────── */
+/* ─── Synthesis mirror — dark, coherent with profile card ───────────────────── */
 .message-synthesis-mirror {
   max-width: 88%;
   padding: 24px 28px;
   border-radius: 16px;
   border-bottom-left-radius: 4px;
-  background: #f5f0e8;
-  border: 1px solid #e0d5c0;
+  background: #1c2b3a;
+  border: 1px solid rgba(255,255,255,0.07);
   align-self: flex-start;
-  color: #1a2a3a;
+  color: #dde6ef;
   font-size: 1.05rem;
   font-weight: 400;
   line-height: 1.9;
   white-space: pre-wrap;
   word-wrap: break-word;
   animation: fadeIn 0.4s ease-in;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
 }
 
 /* ─── Synthesis card (headed mirror via HTML) ────────────────────────────────── */
 .synthesis-card {
-  background: #f5f0e8;
-  border: 1px solid #e0d5c0;
+  background: #1c2b3a;
+  border: 1px solid rgba(255,255,255,0.07);
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
 }
 
 .synthesis-label {
@@ -216,7 +216,7 @@ body {
 
 .synthesis-body {
   padding: 0 28px 28px;
-  color: #1a2a3a;
+  color: #c8d8e8;
   font-size: 1.08rem;
   font-weight: 400;
   line-height: 1.9;
@@ -427,8 +427,6 @@ body {
 
 .carousel-slide p:last-of-type {
   margin-bottom: 0;
-  color: #b8cfe0;
-  font-size: 1rem;
 }
 
 /* ─── Carousel nav ───────────────────────────────────────────────────────────── */
@@ -519,7 +517,7 @@ body {
 }
 
 .profile-hero {
-  padding: 28px 32px 20px;
+  padding: 28px 32px 24px;
   border-bottom: 1px solid rgba(255,255,255,0.08);
   background: #162330;
 }
@@ -547,17 +545,17 @@ body {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: #E89842;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .profile-section {
-  padding: 20px 32px;
+  padding: 18px 32px;
   border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
 .profile-section:last-child {
   border-bottom: none;
-  padding-bottom: 32px;
+  padding-bottom: 28px;
 }
 
 .profile-section p {
@@ -565,6 +563,7 @@ body {
   font-size: 0.97rem;
   font-weight: 400;
   line-height: 1.8;
+  margin: 0;
 }
 
 .profile-rule {
@@ -576,7 +575,7 @@ body {
 .profile-actions {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
 .profile-action {
@@ -603,7 +602,7 @@ body {
 .profile-resources {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
 }
 
 .profile-resource {
@@ -614,7 +613,7 @@ body {
   font-weight: 600;
   color: #dde6ef;
   font-size: 0.95rem;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   display: inline-block;
   border-bottom: 1px solid #E89842;
   padding-bottom: 2px;
@@ -626,7 +625,13 @@ body {
   line-height: 1.65;
 }
 
-/* ─── Profile closing line ───────────────────────────────────────────────────── */
+.profile-section-actions {
+  border-top: 1px solid rgba(255,255,255,0.12);
+}
+
+.profile-section-resources {
+  border-top: 1px solid rgba(255,255,255,0.12);
+}
 .profile-closing {
   padding: 24px 32px 32px;
   text-align: center;
