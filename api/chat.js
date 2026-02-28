@@ -396,9 +396,7 @@ function renderPhase4(p4) {
       <p>${esc(p4.responsibility)}</p>
     </div>
 
-    <div class="profile-rule"></div>
-
-    <div class="profile-section">
+    <div class="profile-section profile-section-actions">
       <div class="profile-section-label">What this looks like</div>
       <div class="profile-actions">
         <div class="profile-action">
