@@ -416,9 +416,7 @@ function renderPhase4(p4) {
       </div>
     </div>
 
-    <div class="profile-rule"></div>
-
-    <div class="profile-section">
+    <div class="profile-section profile-section-resources">
       <div class="profile-section-label">Worth exploring</div>
       <div class="profile-resources">${resourcesHtml}</div>
     </div>
@@ -624,7 +622,7 @@ async function synthesiseAndFrame(session, res) {
     message:      synthesis.synthesis_text,
     session,
     phase:        "synthesis",
-    phaseLabel:   "Pattern Recognition",
+    phaseLabel:   "Signal Reading",
     inputMode:    "none",
     autoAdvance:  true,
     advanceDelay: 6000
