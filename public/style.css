@@ -528,24 +528,37 @@ body {
   color: #ffffff;
   letter-spacing: -0.02em;
   line-height: 1.1;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .profile-meta {
-  font-size: 0.8rem;
+  font-size: 1.1rem;
   font-weight: 600;
-  color: #E89842;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.profile-meta-divider {
+  display: inline-block;
+  width: 1px;
+  height: 14px;
+  background: rgba(255,255,255,0.4);
+  vertical-align: middle;
 }
 
 .profile-section-label {
-  font-size: 0.72rem;
+  font-size: 0.85rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: #E89842;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+  display: inline-block;
+  border-bottom: 1px solid #E89842;
+  padding-bottom: 3px;
 }
 
 .profile-section {
@@ -642,12 +655,15 @@ body {
 }
 
 .synthesis-section-label {
-  font-size: 0.72rem;
+  font-size: 0.85rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: #E89842;
   margin-bottom: 8px;
+  display: inline-block;
+  border-bottom: 1px solid #E89842;
+  padding-bottom: 3px;
 }
 
 .synthesis-section p {
