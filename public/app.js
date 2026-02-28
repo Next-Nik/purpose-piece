@@ -216,17 +216,19 @@ const App = {
       UI.setInputMode(data.inputMode || "text");
     }
 
-    // Auto-advance: synthesis delivered → fire Phase 4 after a pause
+    // Auto-advance: synthesis delivered → show typing → fire Phase 4
     if (data.autoAdvance) {
       const delay = data.advanceDelay || 6000;
       UI.setInputMode("none");
-      setTimeout(async () => {
-        try {
-          const p4data = await this.callAPI([]);
-          this.handleAPIResponse(p4data);
-        } catch (e) {
+      setTimeout(() => {
+        UI.showTyping();
+        App.callAPI([]).then(p4data => {
+          UI.hideTyping();
+          App.handleAPIResponse(p4data);
+        }).catch(e => {
+          UI.hideTyping();
           console.error("Phase 4 auto-advance error:", e);
-        }
+        });
       }, delay);
     }
   },
