@@ -517,7 +517,7 @@ body {
 }
 
 .profile-hero {
-  padding: 28px 32px 24px;
+  padding: 24px 32px 20px;
   border-bottom: 1px solid rgba(255,255,255,0.08);
   background: #162330;
 }
@@ -545,24 +545,24 @@ body {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: #E89842;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .profile-section {
-  padding: 18px 32px;
+  padding: 14px 32px;
   border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
 .profile-section:last-child {
   border-bottom: none;
-  padding-bottom: 28px;
+  padding-bottom: 20px;
 }
 
 .profile-section p {
   color: #c8d8e8;
   font-size: 0.97rem;
   font-weight: 400;
-  line-height: 1.8;
+  line-height: 1.75;
   margin: 0;
 }
 
