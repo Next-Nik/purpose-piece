@@ -84,8 +84,7 @@ const UI = {
   // ─── Typing indicator ───────────────────────────────────────────────────────
   createTypingIndicator() {
     const div = document.createElement("div");
-    div.className = "typing-indicator";
-    div.id = "typing-indicator";
+    div.className = "typing-indicator active";
     div.innerHTML = `
       <div class="typing-dot"></div>
       <div class="typing-dot"></div>
@@ -95,13 +94,13 @@ const UI = {
   },
 
   showTyping() {
-    const indicator = document.getElementById("typing-indicator");
-    if (indicator) indicator.classList.add("active");
+    const indicators = document.querySelectorAll(".typing-indicator");
+    indicators.forEach(el => el.classList.add("active"));
   },
 
   hideTyping() {
-    const indicator = document.getElementById("typing-indicator");
-    if (indicator) indicator.classList.remove("active");
+    const indicators = document.querySelectorAll(".typing-indicator");
+    indicators.forEach(el => el.remove());
   },
 
   // ─── Progress bar ───────────────────────────────────────────────────────────
