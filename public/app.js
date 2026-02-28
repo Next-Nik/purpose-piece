@@ -239,32 +239,48 @@ const App = {
       UI.setInputMode(data.inputMode || "text");
     }
 
-    // Auto-advance: synthesis delivered → bridging message + dots → fire Phase 4
+    // Auto-advance handling — two phases use this
     if (data.autoAdvance) {
-      const delay = data.advanceDelay || 6000;
+      const delay = data.advanceDelay || 500;
       UI.setInputMode("none");
-      setTimeout(() => {
-        // Bridging message
-        const bridgeEl = UI.createAssistantMessage("Building your profile now...");
-        chatContainer.appendChild(bridgeEl);
-        UI.scrollToMessage(bridgeEl);
 
-        // Fresh typing indicator
-        const typingEl = UI.createTypingIndicator();
-        chatContainer.appendChild(typingEl);
-        UI.showTyping();
-        UI.scrollToMessage(typingEl);
+      if (data.phase === "thinking") {
+        // Thinking → synthesis: show animated dots, fire API, dots disappear when synthesis arrives
+        setTimeout(() => {
+          const typingEl = UI.createTypingIndicator();
+          chatContainer.appendChild(typingEl);
+          UI.scrollToMessage(typingEl);
+          App.callAPI([]).then(synthData => {
+            typingEl.remove();
+            App.handleAPIResponse(synthData);
+          }).catch(e => {
+            typingEl.remove();
+            console.error("Synthesis auto-advance error:", e);
+          });
+        }, delay);
 
-        App.callAPI([]).then(p4data => {
-          typingEl.remove();
-          bridgeEl.remove();
-          App.handleAPIResponse(p4data);
-        }).catch(e => {
-          typingEl.remove();
-          bridgeEl.remove();
-          console.error("Phase 4 auto-advance error:", e);
-        });
-      }, delay);
+      } else if (data.phase === "synthesis") {
+        // Synthesis → profile: pause, show bridge message + dots, fire API, both disappear when profile arrives
+        setTimeout(() => {
+          const bridgeEl = UI.createAssistantMessage("Building your profile now...");
+          chatContainer.appendChild(bridgeEl);
+          UI.scrollToMessage(bridgeEl);
+
+          const typingEl = UI.createTypingIndicator();
+          chatContainer.appendChild(typingEl);
+          UI.scrollToMessage(typingEl);
+
+          App.callAPI([]).then(p4data => {
+            typingEl.remove();
+            bridgeEl.remove();
+            App.handleAPIResponse(p4data);
+          }).catch(e => {
+            typingEl.remove();
+            bridgeEl.remove();
+            console.error("Profile auto-advance error:", e);
+          });
+        }, delay);
+      }
     }
   },
 
