@@ -187,9 +187,32 @@ const App = {
       }
 
       const isSynthesis = data.phase === "synthesis";
-      const msgEl = UI.createAssistantMessage(data.message, isSynthesis);
-      chatContainer.appendChild(msgEl);
-      setTimeout(() => msgEl.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+
+      // Synthesis with sections — render gold headers
+      if (isSynthesis && data.sections) {
+        const sectionOrder = [
+          { key: "your_signal",  label: "Your Signal" },
+          { key: "your_engine",  label: "Your Engine" },
+          { key: "your_calling", label: "Your Calling" },
+          { key: "the_cost",     label: "The Cost" }
+        ];
+        const wrapper = document.createElement("div");
+        wrapper.className = "message message-synthesis-mirror";
+        sectionOrder.forEach(({ key, label }) => {
+          const text = data.sections[key];
+          if (!text) return;
+          const section = document.createElement("div");
+          section.className = "synthesis-section";
+          section.innerHTML = `<div class="synthesis-section-label">${label}</div><p>${text}</p>`;
+          wrapper.appendChild(section);
+        });
+        chatContainer.appendChild(wrapper);
+        setTimeout(() => wrapper.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+      } else {
+        const msgEl = UI.createAssistantMessage(data.message, isSynthesis);
+        chatContainer.appendChild(msgEl);
+        setTimeout(() => msgEl.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+      }
     }
 
     // Option buttons (if inputMode is "buttons" and options provided)
@@ -216,17 +239,26 @@ const App = {
       UI.setInputMode(data.inputMode || "text");
     }
 
-    // Auto-advance: synthesis delivered → show typing → fire Phase 4
+    // Auto-advance: synthesis delivered → bridging message + dots → fire Phase 4
     if (data.autoAdvance) {
       const delay = data.advanceDelay || 6000;
       UI.setInputMode("none");
       setTimeout(() => {
+        // Bridging message
+        const bridgeEl = UI.createAssistantMessage("Building your profile now...");
+        chatContainer.appendChild(bridgeEl);
+        UI.scrollToMessage(bridgeEl);
+
+        // Animated dots beneath it
         UI.showTyping();
+
         App.callAPI([]).then(p4data => {
           UI.hideTyping();
+          bridgeEl.remove();
           App.handleAPIResponse(p4data);
         }).catch(e => {
           UI.hideTyping();
+          bridgeEl.remove();
           console.error("Phase 4 auto-advance error:", e);
         });
       }, delay);
