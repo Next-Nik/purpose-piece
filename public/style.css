@@ -106,8 +106,6 @@ body {
 /* ─── Messages ──────────────────────────────────────────────────────────────── */
 .message {
   max-width: 85%;
-  padding: 16px 20px;
-  border-radius: 12px;
   line-height: 1.8;
   font-size: 1.05rem;
   white-space: pre-wrap;
@@ -139,11 +137,12 @@ body {
   background: #E89842;
   color: #ffffff;
   align-self: flex-end;
+  border-radius: 12px;
   border-bottom-right-radius: 4px;
+  padding: 16px 20px;
   font-weight: 600;
   font-size: 1.02rem;
   line-height: 1.75;
-  border-radius: 12px;
 }
 
 @keyframes fadeIn {
@@ -504,6 +503,8 @@ body {
   background: none;
   border: none;
   padding: 0;
+  /* Override base .message padding */
+  margin: 0;
 }
 
 .profile-card {
@@ -518,7 +519,7 @@ body {
 }
 
 .profile-hero {
-  padding: 32px 32px 24px;
+  padding: 28px 32px 20px;
   border-bottom: 1px solid rgba(255,255,255,0.08);
   background: #162330;
 }
@@ -594,14 +595,19 @@ body {
   text-transform: uppercase;
   color: #E89842;
   white-space: nowrap;
-  min-width: 72px;
+  min-width: 88px;
   padding-top: 3px;
+  flex-shrink: 0;
 }
 
 .profile-resources {
   display: flex;
   flex-direction: column;
   gap: 18px;
+}
+
+.profile-resource {
+  display: block;
 }
 
 .profile-resource-title {
