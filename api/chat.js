@@ -374,7 +374,7 @@ function renderPhase4(p4) {
 
     <div class="profile-hero">
       <div class="profile-archetype-name">${esc(archetypeName)}</div>
-      <div class="profile-meta">${esc(domainName)}${domainName && scaleName ? " &middot; " : ""}${esc(scaleName)}</div>
+      <div class="profile-meta">${esc(domainName)}<span class="profile-meta-divider"></span>${esc(scaleName)}</div>
     </div>
 
     <div class="profile-section">
@@ -561,13 +561,13 @@ module.exports = async (req, res) => {
         if (session.questionIndex >= 5) {
           session.phase = "thinking";
           return res.status(200).json({
-            message:      "Reading the pattern in your answers.\n\nThis takes a moment...",
+            message:      "Reading the pattern in your answers.",
             session,
             phase:        "thinking",
             phaseLabel:   "Signal Reading",
             inputMode:    "none",
             autoAdvance:  true,
-            advanceDelay: 2000
+            advanceDelay: 500
           });
         }
 
