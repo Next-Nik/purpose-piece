@@ -249,15 +249,18 @@ const App = {
         chatContainer.appendChild(bridgeEl);
         UI.scrollToMessage(bridgeEl);
 
-        // Animated dots beneath it
+        // Fresh typing indicator
+        const typingEl = UI.createTypingIndicator();
+        chatContainer.appendChild(typingEl);
         UI.showTyping();
+        UI.scrollToMessage(typingEl);
 
         App.callAPI([]).then(p4data => {
-          UI.hideTyping();
+          typingEl.remove();
           bridgeEl.remove();
           App.handleAPIResponse(p4data);
         }).catch(e => {
-          UI.hideTyping();
+          typingEl.remove();
           bridgeEl.remove();
           console.error("Phase 4 auto-advance error:", e);
         });
