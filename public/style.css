@@ -532,12 +532,16 @@ body {
 }
 
 .profile-card-heading {
-  font-size: 0.8rem;
+  font-size: 1.3rem;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: #E89842;
-  margin-bottom: 14px;
+  text-align: center;
+  text-decoration: underline;
+  text-decoration-color: #E89842;
+  text-underline-offset: 6px;
+  margin-bottom: 18px;
 }
 
 .profile-archetype-name {
@@ -665,12 +669,16 @@ body {
 }
 /* ─── Synthesis mirror sections ──────────────────────────────────────────────── */
 .synthesis-heading {
-  font-size: 0.8rem;
+  font-size: 1.3rem;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: #E89842;
-  margin-bottom: 16px;
+  text-align: center;
+  text-decoration: underline;
+  text-decoration-color: #E89842;
+  text-underline-offset: 6px;
+  margin-bottom: 20px;
 }
 
 .synthesis-intro {
