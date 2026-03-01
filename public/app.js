@@ -32,7 +32,7 @@ const App = {
 
       // On last slide: swap arrow for Begin text button
       if (currentSlide === totalSlides - 1) {
-        arrow.outerHTML = `<button class="carousel-begin" id="carousel-arrow">Begin</button>`;
+        arrow.outerHTML = `<button class="carousel-begin" id="carousel-arrow">Find where you fit</button>`;
         document.getElementById("carousel-arrow").addEventListener("click", () => this.startConversation());
       }
     };
@@ -198,6 +198,14 @@ const App = {
         ];
         const wrapper = document.createElement("div");
         wrapper.className = "message message-synthesis-mirror";
+        const heading = document.createElement("div");
+        heading.className = "synthesis-heading";
+        heading.textContent = "Initial Reflection";
+        wrapper.appendChild(heading);
+        const intro = document.createElement("div");
+        intro.className = "synthesis-intro";
+        intro.textContent = "Here's what the pattern in your answers is telling me.";
+        wrapper.appendChild(intro);
         sectionOrder.forEach(({ key, label }) => {
           const text = data.sections[key];
           if (!text) return;
