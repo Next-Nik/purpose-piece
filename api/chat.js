@@ -37,7 +37,7 @@ const QUESTIONS = [
   },
   {
     label: "The Obligation",
-    text: "What's something you haven't done yet that sits with you — not as a goal you're working toward, but as something that feels more like a debt?\n\nSomething that would produce guilt if it remained undone."
+    text: "What's something you haven't done yet that keeps coming back to you — not as a goal you're working toward, but as something that would feel like unfinished business if you never got to it?\n\nWhat is it, and why does it keep returning?"
   }
 ];
 
@@ -60,8 +60,8 @@ const PROBES = [
     "What do people around you not seem to pay — what's the thing you carry that others put down more easily?"
   ],
   [
-    "What makes this feel like a debt rather than a goal? Is there a person involved, or a moment you're aware of passing?",
-    "If it remained undone — what specifically would you feel guilty about?"
+    "What makes this feel like unfinished business rather than just something on a list? Is there a person, a moment, or a window you're aware of closing?",
+    "If you never got to it — what specifically would feel incomplete? What would remain undone in you?"
   ]
 ];
 
@@ -545,7 +545,8 @@ module.exports = async (req, res) => {
       }
 
       // Responding to a probe
-      entry.probes.push({ probe: PROBES[qi][session.probeCount - 1], response: latestInput });
+      const probeIndex = Math.min(session.probeCount - 1, PROBES[qi].length - 1);
+      entry.probes.push({ probe: PROBES[qi][probeIndex], response: latestInput });
       const combined = entry.answer + " " + entry.probes.map(p => p.response).join(" ");
       const thin     = isThin(combined, qi);
 
@@ -553,6 +554,50 @@ module.exports = async (req, res) => {
         if (session.probeCount >= 2 && thin) {
           const check = await claudeSignalCheck(QUESTIONS[qi].text, combined);
           entry.thin = !check.has_signal;
+
+          // Still no signal after two probes — hold one more time with a direct ask
+          if (!check.has_signal && session.probeCount === 2) {
+            session.probeCount = 3;
+            return res.status(200).json({
+              message: "I want to make sure I'm reading this accurately. Can you give me one specific example — a real moment, even a small one?",
+              session,
+              phase: "questions",
+              phaseLabel: "Behavioural Evidence",
+              inputMode: "text",
+              isProbe: true
+            });
+          }
+
+          // After probe 3 — acknowledge and move on
+          if (session.probeCount >= 3) {
+            entry.thin = true;
+            session.probeCount = 0;
+            session.questionIndex++;
+
+            const acknowledgment = "Let's keep moving. I'll work with what's here.";
+
+            if (session.questionIndex >= 5) {
+              session.phase = "thinking";
+              return res.status(200).json({
+                message:      acknowledgment,
+                session,
+                phase:        "thinking",
+                phaseLabel:   "Signal Reading",
+                inputMode:    "none",
+                autoAdvance:  true,
+                advanceDelay: 2000
+              });
+            }
+
+            return res.status(200).json({
+              message:       acknowledgment + `\n\nQuestion ${session.questionIndex + 1} of 5\n\n${QUESTIONS[session.questionIndex].text}`,
+              session,
+              phase:         "questions",
+              phaseLabel:    "Behavioural Evidence",
+              questionIndex: session.questionIndex,
+              inputMode:     "text"
+            });
+          }
         }
 
         session.probeCount = 0;
