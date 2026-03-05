@@ -37,7 +37,7 @@ const QUESTIONS = [
   },
   {
     label: "The Obligation",
-    text: "What's something you haven't done yet that keeps coming back to you — not as a goal you're working toward, but as something that would feel like unfinished business if you never got to it?\n\nWhat is it, and why does it keep returning?"
+    text: "What's something you haven't done yet that sits with you — something that would feel like unfinished business if it never happened? What would remain undone in you?"
   }
 ];
 
@@ -695,7 +695,6 @@ async function frameAndDeliver(session, res) {
     message:    renderPhase4(p4),
     session,
     phase:      "complete",
-    phaseLabel: "Your Purpose Piece",
     inputMode:  "none",
     complete:   true,
     profile:    p4
